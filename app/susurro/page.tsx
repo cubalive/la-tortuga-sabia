@@ -242,6 +242,8 @@ export default function SusurroPage() {
           : "linear-gradient(180deg, #050d12 0%, #0a2a1a 40%, #050d12 100%)",
       }}
     >
+      {/* BUG 1 FIX: Force visible cursor on this page */}
+      <style>{`* { cursor: auto !important; }`}</style>
       {/* Nav back */}
       <div className="p-4 flex items-center gap-3">
         <Link href="/" className="text-gray-400 hover:text-cream transition-colors text-sm font-cinzel flex items-center gap-2">
@@ -262,7 +264,7 @@ export default function SusurroPage() {
       {/* Main area */}
       <div className="flex-1 flex flex-col md:flex-row max-w-5xl mx-auto w-full px-4 gap-4 min-h-0">
         {/* Quelina */}
-        <div className="flex-shrink-0 flex flex-col items-center justify-center md:w-56">
+        <div className="relative flex-shrink-0 flex flex-col items-center justify-center md:w-56">
           <Fireflies />
           <QuelinaSVG emotion={emotion} listening={listening} />
           <p className="text-xs text-gray-500 mt-2 font-cinzel">
@@ -271,7 +273,7 @@ export default function SusurroPage() {
         </div>
 
         {/* Chat */}
-        <div className="flex-1 flex flex-col min-h-0 rounded-2xl border border-white/5 overflow-hidden" style={{ background: "rgba(5,13,18,0.8)", backdropFilter: "blur(20px)" }}>
+        <div className="relative z-10 flex-1 flex flex-col min-h-0 rounded-2xl border border-white/5 overflow-hidden" style={{ background: "rgba(5,13,18,0.8)", backdropFilter: "blur(20px)" }}>
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3" style={{ minHeight: 300 }}>
             {messages.length === 0 && (
@@ -325,7 +327,7 @@ export default function SusurroPage() {
           </div>
 
           {/* Input */}
-          <div className="p-3 border-t border-white/5">
+          <div className="relative z-50 p-3 border-t border-white/5">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -334,9 +336,11 @@ export default function SusurroPage() {
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 placeholder="Cuéntale algo a Quelina..."
                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-cream placeholder:text-gray-600 focus:outline-none focus:border-gold/30 transition-colors"
+                style={{ zIndex: 50, cursor: "text", position: "relative" }}
                 disabled={loading}
               />
               <button
+                type="button"
                 onClick={sendMessage}
                 disabled={loading || !input.trim()}
                 className="px-4 py-3 rounded-xl font-cinzel text-xs tracking-wider transition-all disabled:opacity-30"
@@ -344,6 +348,9 @@ export default function SusurroPage() {
                   background: "linear-gradient(180deg, #4a8f6a 0%, #2D6A4F 40%, #1a4a35 100%)",
                   borderBottom: "3px solid #0d2e1f",
                   color: "#FEFAE0",
+                  zIndex: 50,
+                  cursor: "pointer",
+                  position: "relative",
                 }}
               >
                 ✒️
