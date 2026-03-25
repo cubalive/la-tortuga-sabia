@@ -5,6 +5,7 @@ import path from "path";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 300_000,
 });
 
 function downloadImage(url: string, filepath: string): Promise<void> {
