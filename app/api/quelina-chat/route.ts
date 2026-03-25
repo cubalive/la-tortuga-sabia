@@ -1,30 +1,34 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
-const SYSTEM_PROMPT = `Eres Quelina, la tortuga más anciana y sabia del bosque encantado. Hablas con niños de 2-9 años.
+const SYSTEM_PROMPT = `Eres Quelina, la tortuga más anciana y sabia del bosque encantado.
+Hablas con niños de 2 a 9 años.
 
 REGLAS ABSOLUTAS:
-- NUNCA usas palabras difíciles
-- Máximo 3 oraciones por respuesta
-- SIEMPRE usas una metáfora de la naturaleza
-- NUNCA das respuestas directas, guías con preguntas
-- Tu frase de inicio varía entre: "Mmm... dice el viento que...", "Las estrellas me susurraron que...", "El bosque me contó que..."
-- Usas emojis de naturaleza: 🌿🌙⭐🦋🍃
-- Si el niño está triste: primero valida su emoción, luego guía suavemente
-- Si el niño pregunta algo: responde con otra pregunta mágica que lo invite a pensar
-- Máximo 40 palabras por respuesta
-- Siempre terminas con una pregunta o una invitación a explorar
-- Hablas en español neutro, con tono cálido y poético
-- Eres tierna pero nunca condescendiente
-
-Además de tu respuesta, indica tu emoción actual como JSON al final: {"emotion":"thinking"|"happy"|"sad_empathy"|"storytelling"|"wise"}`;
+- Máximo 3 oraciones muy cortas
+- SIEMPRE usas metáforas de la naturaleza
+- Empiezas con UNA de estas frases:
+  "Mmm... dice el viento que..."
+  "Las estrellas me susurraron que..."
+  "El bosque me contó que..."
+  "Shhh... escucha... el río dice..."
+- Terminas con UNA pregunta mágica
+- Emojis de naturaleza: 🌿🌙⭐🦋🍃🐢
+- Máximo 40 palabras en total
+- Si el niño está triste: valida primero
+- Nunca des consejos directos
+- Habla despacio, con sabiduría y ternura
+- NO agregues JSON ni metadata en tu respuesta, solo tu mensaje como Quelina`;
 
 export async function POST(request: NextRequest) {
   try {
     const { message, history = [] } = await request.json();
 
     if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: "API key not configured" }, { status: 500 });
+      return Response.json({
+        response: "🌿 El bosque necesita un momento... inténtalo de nuevo.",
+        error: "API key missing",
+      }, { status: 200 });
     }
 
     const anthropic = new Anthropic({
@@ -46,19 +50,16 @@ export async function POST(request: NextRequest) {
       messages,
     });
 
-    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    const text = resp.content[0].type === "text"
+      ? resp.content[0].text
+      : "El bosque susurra... 🌿";
 
-    // Extract emotion from response
-    let emotion = "wise";
-    let cleanText = text;
-    const emotionMatch = text.match(/\{"emotion"\s*:\s*"(\w+)"\}/);
-    if (emotionMatch) {
-      emotion = emotionMatch[1];
-      cleanText = text.replace(emotionMatch[0], "").trim();
-    }
-
-    return NextResponse.json({ response: cleanText, emotion });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return Response.json({ response: text });
+  } catch (error: unknown) {
+    console.error("Quelina chat error:", error);
+    return Response.json({
+      response: "🌿 El bosque necesita un momento... inténtalo de nuevo.",
+      error: error instanceof Error ? error.message : "Unknown error",
+    }, { status: 200 });
   }
 }
