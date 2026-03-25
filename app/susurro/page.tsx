@@ -2,7 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
+
+type QuelinaState = "idle" | "listening" | "happy" | "sleeping";
+
+const QUELINA_IMAGES: Record<QuelinaState, string> = {
+  idle: "/images/quelina-normal.png",
+  listening: "/images/quelina-listening.png",
+  happy: "/images/quelina-happy.png",
+  sleeping: "/images/quelina-sleeping.png",
+};
 
 interface Message {
   role: "user" | "assistant";
@@ -58,61 +68,23 @@ function TypewriterText({ text }: { text: string }) {
   );
 }
 
-/* ═══ Quelina SVG ═══ */
-function QuelinaSVG({ talking, listening }: { talking: boolean; listening: boolean }) {
-  const tiltHead = listening ? "rotate(-8deg)" : "rotate(0deg)";
-
+/* ═══ Quelina Image (state-based poses) ═══ */
+function QuelinaImage({ state, talking }: { state: QuelinaState; talking: boolean }) {
   return (
-    <motion.svg
-      width="180"
-      height="180"
-      viewBox="0 0 100 100"
+    <motion.div
       animate={{ scale: [1, 1.02, 1] }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       className={talking ? "quelina-talking" : ""}
     >
-      <ellipse cx="50" cy="58" rx="28" ry="20" fill="#2D6A4F" />
-      <ellipse cx="50" cy="50" rx="22" ry="18" fill="#1B4332" />
-      {[
-        [42, 44], [50, 40], [58, 44], [46, 50], [54, 50], [50, 56],
-      ].map(([cx, cy], i) => (
-        <motion.circle
-          key={i}
-          cx={cx}
-          cy={cy}
-          r="1.5"
-          fill="#C9882A"
-          animate={{ opacity: talking ? [0.3, 1, 0.3] : [0.5, 0.8, 0.5] }}
-          transition={{ duration: talking ? 0.8 : 1.5, repeat: Infinity, delay: i * 0.15 }}
-        />
-      ))}
-      <line x1="42" y1="44" x2="50" y2="40" stroke="#C9882A" strokeWidth="0.5" opacity="0.4" />
-      <line x1="50" y1="40" x2="58" y2="44" stroke="#C9882A" strokeWidth="0.5" opacity="0.4" />
-      <line x1="46" y1="50" x2="54" y2="50" stroke="#C9882A" strokeWidth="0.5" opacity="0.4" />
-      <g style={{ transform: tiltHead, transformOrigin: "65px 52px", transition: "transform 0.5s ease" }}>
-        <circle cx="72" cy="52" r="10" fill="#40916C" />
-        <motion.ellipse cx="75" cy="50" rx="2" ry="2.5" fill="#050d12"
-          animate={talking ? { ry: [2.5, 1, 2.5] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        />
-        <circle cx="76" cy="49" r="0.8" fill="white" />
-        <ellipse cx="69" cy="50" rx="2" ry="2.5" fill="#050d12" />
-        <circle cx="70" cy="49" r="0.8" fill="white" />
-        <path
-          d={talking ? "M68,55 Q72,59 76,55" : "M69,55 Q72,57 75,55"}
-          fill="none" stroke="#1B4332" strokeWidth="1" strokeLinecap="round"
-        />
-      </g>
-      <ellipse cx="32" cy="68" rx="6" ry="4" fill="#40916C" />
-      <ellipse cx="68" cy="68" rx="6" ry="4" fill="#40916C" />
-      <ellipse cx="30" cy="48" rx="5" ry="3.5" fill="#40916C" />
-      <ellipse cx="70" cy="70" rx="5" ry="3.5" fill="#40916C" />
-      <motion.ellipse cx="23" cy="58" rx="4" ry="2" fill="#40916C"
-        animate={{ rotate: [0, 10, -10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        style={{ transformOrigin: "27px 58px" }}
+      <Image
+        src={QUELINA_IMAGES[state]}
+        alt="Quelina"
+        width={250}
+        height={250}
+        style={{ filter: "drop-shadow(0 0 20px rgba(201,136,42,0.5))" }}
+        priority
       />
-    </motion.svg>
+    </motion.div>
   );
 }
 
@@ -145,6 +117,7 @@ export default function SusurroPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [talking, setTalking] = useState(true);
+  const [quelinaState, setQuelinaState] = useState<QuelinaState>("idle");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const isNight = typeof window !== "undefined"
@@ -167,6 +140,7 @@ export default function SusurroPage() {
     setInput("");
     setLoading(true);
     setTalking(false);
+    setQuelinaState("listening");
 
     setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
 
@@ -189,9 +163,13 @@ export default function SusurroPage() {
 
       if (data.response) {
         setTalking(true);
+        setQuelinaState("happy");
         setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
-        // Stop talking after typewriter finishes
-        setTimeout(() => setTalking(false), data.response.length * 35 + 500);
+        // Return to idle after typewriter finishes
+        setTimeout(() => {
+          setTalking(false);
+          setQuelinaState("idle");
+        }, data.response.length * 35 + 2000);
       }
     } catch {
       setMessages((prev) => [
@@ -243,7 +221,7 @@ export default function SusurroPage() {
         {/* Quelina */}
         <div className="relative flex-shrink-0 flex flex-col items-center justify-center md:w-56">
           <Fireflies />
-          <QuelinaSVG talking={talking} listening={input.length > 0} />
+          <QuelinaImage state={quelinaState} talking={talking} />
           <p className="text-xs text-gray-500 mt-2 font-cinzel">
             {loading ? "🐢 Pensando..." : talking ? "✨ Hablando..." : ""}
           </p>
@@ -320,7 +298,11 @@ export default function SusurroPage() {
               <input
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  if (e.target.value.length > 0 && !loading) setQuelinaState("listening");
+                  else if (!loading && !talking) setQuelinaState("idle");
+                }}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 placeholder="Cuéntale algo a Quelina..."
                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-cream placeholder:text-gray-600 focus:outline-none focus:border-gold/30 transition-colors"

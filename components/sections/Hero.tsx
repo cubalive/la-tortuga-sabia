@@ -78,8 +78,24 @@ export default function Hero() {
         />
       ))}
 
+      {/* Quelina character floating */}
+      <motion.div
+        className="absolute z-10 pointer-events-none"
+        style={{ top: "15%", left: "50%", transform: "translateX(-50%)" }}
+        animate={{ y: [0, -15, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Image
+          src="/images/quelina-normal.png"
+          alt="Quelina"
+          width={300}
+          height={300}
+          style={{ filter: "drop-shadow(0 0 30px rgba(201,136,42,0.5))" }}
+        />
+      </motion.div>
+
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto flex flex-col items-center justify-center">
+      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto flex flex-col items-center justify-center mt-40 md:mt-48">
         {/* Title — 3D wood texture white */}
         <motion.h1
           initial={{ opacity: 0, y: 50, scale: 0.8 }}

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { FaTiktok, FaYoutube, FaSpotify, FaInstagram } from "react-icons/fa";
 
 const links = [
@@ -13,6 +14,14 @@ const links = [
 export default function Footer() {
   return (
     <footer className="relative py-16 px-4 overflow-hidden" style={{ background: "#050d12" }}>
+      {/* Walking Quelina */}
+      <motion.div
+        className="absolute bottom-2 z-10 pointer-events-none"
+        animate={{ x: ["-10%", "110%"] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      >
+        <Image src="/images/quelina-normal.png" alt="Quelina walking" width={80} height={80} style={{ filter: "drop-shadow(0 0 10px rgba(201,136,42,0.4))" }} />
+      </motion.div>
       {/* Star field */}
       {Array.from({ length: 40 }).map((_, i) => (
         <motion.div
