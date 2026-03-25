@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import LenisProvider from "@/components/effects/LenisProvider";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import SectionDivider from "@/components/ui/SectionDivider";
@@ -18,7 +19,7 @@ const CustomCursor = dynamic(() => import("@/components/CustomCursor"), { ssr: f
 
 export default function Home() {
   return (
-    <>
+    <LenisProvider>
       <LoadingScreen />
       <CustomCursor />
       <Navbar />
@@ -40,6 +41,6 @@ export default function Home() {
         <SectionDivider variant="wave" colorFrom="#050d12" colorTo="#050d12" flip />
         <Footer />
       </main>
-    </>
+    </LenisProvider>
   );
 }

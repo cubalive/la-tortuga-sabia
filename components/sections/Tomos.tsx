@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Tilt from "react-parallax-tilt";
 import { useInView } from "react-intersection-observer";
 
 const tomos = [
@@ -176,17 +177,22 @@ export default function Tomos() {
         {tomos.map((tomo, i) => {
           const Effect = effectMap[tomo.effect];
           return (
-            <motion.div
+            <Tilt
               key={tomo.num}
+              tiltMaxAngleX={10}
+              tiltMaxAngleY={10}
+              glareEnable={true}
+              glareMaxOpacity={0.2}
+              glareColor={tomo.color}
+              glareBorderRadius="16px"
+              className="rounded-2xl"
+            >
+            <motion.div
               className="relative rounded-2xl overflow-hidden border border-white/5 group"
               style={{ height: 400, background: tomo.bg }}
               initial={{ opacity: 0, y: 40 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.2 + i * 0.15, duration: 0.6 }}
-              whileHover={{
-                scale: 1.03,
-                boxShadow: `0 20px 40px ${tomo.color}66`,
-              }}
             >
               {/* DALL-E cover image */}
               <Image
@@ -245,6 +251,7 @@ export default function Tomos() {
                 </span>
               </div>
             </motion.div>
+            </Tilt>
           );
         })}
       </div>

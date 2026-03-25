@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import MagicButton from "@/components/ui/MagicButton";
+import MagicParticles from "@/components/effects/MagicParticles";
 
 const HERO_BG = "/images/hero-bg.jpg";
 
@@ -60,7 +61,10 @@ export default function Hero() {
         <QuellinaUniverse />
       </div>
 
-      {/* Layer 4: golden particles */}
+      {/* Layer 4: tsParticles */}
+      <MagicParticles preset="gold" />
+
+      {/* Layer 5: golden particles (motion) */}
       {PARTICLES.map((p) => (
         <motion.div
           key={p.id}
