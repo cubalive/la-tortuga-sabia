@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import MagicButton from "@/components/ui/MagicButton";
 
 const plans = [
   {
@@ -97,17 +98,9 @@ function HoloCard({
           ))}
         </ul>
 
-        <motion.button
-          className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-            plan.popular
-              ? "bg-jade text-white hover:bg-jade-light glow-jade"
-              : "border border-white/10 text-cream hover:bg-white/5"
-          }`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <MagicButton type={plan.popular ? "primary" : "secondary"} className="w-full">
           {plan.cta}
-        </motion.button>
+        </MagicButton>
       </div>
     </motion.div>
   );

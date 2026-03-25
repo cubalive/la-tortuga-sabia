@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
@@ -9,76 +8,145 @@ const tomos = [
     num: "I",
     title: "El Bosque Encantado",
     desc: "Quelina descubre un bosque donde las luciérnagas guardan secretos antiguos y los árboles susurran canciones de cuna.",
-    bg: "radial-gradient(ellipse at 50% 80%, #0a2a1a 0%, #050d12 100%)",
-    effect: "fireflies",
+    age: "2-4 años",
+    bg: "linear-gradient(160deg, #0a2a1a 0%, #050d12 60%)",
     color: "#40916C",
+    effect: "fireflies" as const,
   },
   {
     num: "II",
     title: "Los Amigos del Camino",
     desc: "Nuevos amigos se unen a la aventura. Cada animal tiene una canción única y una lección especial para los niños.",
-    bg: "radial-gradient(ellipse at 50% 80%, #1a2a0a 0%, #050d12 100%)",
-    effect: "particles",
+    age: "3-5 años",
+    bg: "linear-gradient(160deg, #1a2a0a 0%, #050d12 60%)",
     color: "#7B68EE",
+    effect: "particles" as const,
   },
   {
     num: "III",
     title: "El Río de los Sueños",
     desc: "Un río mágico lleva a Quelina por paisajes de ensueño donde la música cobra vida y los sueños se hacen realidad.",
-    bg: "radial-gradient(ellipse at 50% 80%, #0a1a2a 0%, #050d12 100%)",
-    effect: "waves",
+    age: "4-6 años",
+    bg: "linear-gradient(160deg, #0a1a2a 0%, #050d12 60%)",
     color: "#4682B4",
+    effect: "waves" as const,
   },
   {
     num: "IV",
     title: "La Montaña de la Sabiduría",
     desc: "La aventura más grande: escalar la montaña donde vive la aurora boreal y descubrir el secreto de la verdadera sabiduría.",
-    bg: "radial-gradient(ellipse at 50% 30%, #1a0a2a 0%, #050d12 100%)",
-    effect: "aurora",
+    age: "5-8 años",
+    bg: "linear-gradient(160deg, #1a0a2a 0%, #050d12 60%)",
     color: "#C9882A",
+    effect: "aurora" as const,
   },
 ];
 
+/* ═══ Background effects ═══ */
 function Fireflies() {
   return (
     <>
-      {Array.from({ length: 8 }).map((_, i) => (
+      {Array.from({ length: 10 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1.5 h-1.5 rounded-full bg-yellow-300"
-          style={{ left: `${15 + Math.random() * 70}%`, top: `${20 + Math.random() * 60}%` }}
-          animate={{ opacity: [0, 1, 0], y: [0, -20, 0], x: [0, (Math.random() - 0.5) * 30, 0] }}
-          transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 3 }}
+          className="absolute w-1.5 h-1.5 rounded-full"
+          style={{
+            left: `${10 + Math.random() * 80}%`,
+            top: `${10 + Math.random() * 60}%`,
+            background: "#E0A840",
+            boxShadow: "0 0 6px #E0A840",
+          }}
+          animate={{
+            opacity: [0, 1, 0],
+            y: [0, -20, 0],
+            x: [0, (Math.random() - 0.5) * 30, 0],
+          }}
+          transition={{
+            duration: 2.5 + Math.random() * 2,
+            repeat: Infinity,
+            delay: Math.random() * 3,
+          }}
         />
       ))}
     </>
   );
 }
 
-function Waves() {
+function Particles() {
   return (
-    <svg className="absolute bottom-0 left-0 w-full h-16 opacity-30" viewBox="0 0 1200 60" preserveAspectRatio="none">
+    <>
+      {Array.from({ length: 12 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: Math.random() * 6 + 2,
+            height: Math.random() * 6 + 2,
+            left: `${Math.random() * 90}%`,
+            top: `${Math.random() * 70}%`,
+            background: ["#7B68EE", "#C9882A", "#40916C", "#DB7093"][i % 4],
+            opacity: 0.4,
+          }}
+          animate={{ y: [0, -15, 0], opacity: [0.2, 0.6, 0.2] }}
+          transition={{
+            duration: 3 + Math.random() * 3,
+            repeat: Infinity,
+            delay: Math.random() * 2,
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
+function WavesEffect() {
+  return (
+    <svg
+      className="absolute bottom-0 left-0 w-full opacity-20 pointer-events-none"
+      style={{ height: 80 }}
+      viewBox="0 0 1200 80"
+      preserveAspectRatio="none"
+    >
       <motion.path
-        d="M0,30 Q300,10 600,30 T1200,30 V60 H0Z"
+        d="M0,40 Q300,15 600,40 T1200,40 V80 H0Z"
         fill="#4682B4"
-        animate={{ d: ["M0,30 Q300,10 600,30 T1200,30 V60 H0Z", "M0,30 Q300,50 600,30 T1200,30 V60 H0Z", "M0,30 Q300,10 600,30 T1200,30 V60 H0Z"] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        animate={{
+          d: [
+            "M0,40 Q300,15 600,40 T1200,40 V80 H0Z",
+            "M0,40 Q300,65 600,40 T1200,40 V80 H0Z",
+            "M0,40 Q300,15 600,40 T1200,40 V80 H0Z",
+          ],
+        }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       />
     </svg>
   );
 }
 
-function Aurora() {
+function AuroraEffect() {
   return (
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-1/2 opacity-20 pointer-events-none"
-      style={{ background: "linear-gradient(180deg, #7B68EE, #40916C, transparent)", filter: "blur(40px)", animation: "aurora 8s ease-in-out infinite" }}
+    <motion.div
+      className="absolute top-0 left-0 right-0 h-1/2 pointer-events-none"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(123,104,238,0.15), rgba(64,145,108,0.1), transparent)",
+        filter: "blur(30px)",
+      }}
+      animate={{ opacity: [0.3, 0.6, 0.3] }}
+      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
     />
   );
 }
 
+const effectMap = {
+  fireflies: Fireflies,
+  particles: Particles,
+  waves: WavesEffect,
+  aurora: AuroraEffect,
+};
+
 export default function Tomos() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  const [hovered, setHovered] = useState<number | null>(null);
 
   return (
     <section id="tomos" ref={ref} className="py-24 px-4" style={{ background: "#050d12" }}>
@@ -100,58 +168,72 @@ export default function Tomos() {
       </motion.p>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        {tomos.map((tomo, i) => (
-          <motion.div
-            key={tomo.num}
-            className="relative rounded-2xl overflow-hidden cursor-pointer border border-white/5"
-            style={{ perspective: "1000px", minHeight: 280 }}
-            initial={{ opacity: 0, y: 40 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 + i * 0.15, duration: 0.6 }}
-            onMouseEnter={() => setHovered(i)}
-            onMouseLeave={() => setHovered(null)}
-          >
-            {/* Door front */}
+        {tomos.map((tomo, i) => {
+          const Effect = effectMap[tomo.effect];
+          return (
             <motion.div
-              className="absolute inset-0 z-10"
-              style={{ background: `linear-gradient(135deg, ${tomo.color}22, #050d12)`, backfaceVisibility: "hidden" }}
-              animate={{ rotateY: hovered === i ? -25 : 0, originX: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              key={tomo.num}
+              className="relative rounded-2xl overflow-hidden border border-white/5 group"
+              style={{ height: 400, background: tomo.bg }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.2 + i * 0.15, duration: 0.6 }}
+              whileHover={{
+                scale: 1.03,
+                boxShadow: `0 20px 40px ${tomo.color}66`,
+              }}
             >
-              <span
-                className="absolute font-cinzel text-5xl font-bold z-[2]"
-                style={{ color: tomo.color, opacity: 0.3, bottom: 80, left: 20 }}
-              >
-                {tomo.num}
-              </span>
-              <h3
-                className="absolute font-cinzel text-xl text-cream font-bold z-[3]"
-                style={{ bottom: 48, left: 20 }}
-              >
-                Tomo {tomo.num}
-              </h3>
-              <p
-                className="absolute font-playfair text-gold text-sm italic z-[4]"
-                style={{ bottom: 24, left: 20 }}
-              >
-                {tomo.title}
-              </p>
-            </motion.div>
+              {/* Animated background effect */}
+              <Effect />
 
-            {/* World behind door */}
-            <div className="absolute inset-0" style={{ background: tomo.bg }}>
-              {tomo.effect === "fireflies" && <Fireflies />}
-              {tomo.effect === "waves" && <Waves />}
-              {tomo.effect === "aurora" && <Aurora />}
-              <p
-                className="absolute text-gray-300 text-xs leading-relaxed z-[5]"
-                style={{ bottom: 20, left: 20, maxWidth: "80%" }}
+              {/* Hover glow overlay */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{
+                  background: `radial-gradient(ellipse at 50% 50%, ${tomo.color}15, transparent 70%)`,
+                }}
+              />
+
+              {/* Text content — SINGLE block, no duplicates */}
+              <div
+                className="absolute bottom-0 left-0 right-0 p-6 z-10"
+                style={{
+                  background: "linear-gradient(transparent, rgba(5,13,18,0.85) 30%)",
+                }}
               >
-                {tomo.desc}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+                {/* Roman numeral */}
+                <span
+                  className="font-cinzel text-6xl font-bold block mb-1"
+                  style={{ color: tomo.color, opacity: 0.25 }}
+                >
+                  {tomo.num}
+                </span>
+
+                {/* Title */}
+                <h3 className="font-cinzel text-xl text-cream font-bold mb-1">
+                  Tomo {tomo.num} — {tomo.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-gray-300 text-xs leading-relaxed mb-2" style={{ maxWidth: "90%" }}>
+                  {tomo.desc}
+                </p>
+
+                {/* Age range badge */}
+                <span
+                  className="inline-block text-xs px-3 py-1 rounded-full"
+                  style={{
+                    background: `${tomo.color}20`,
+                    color: tomo.color,
+                    border: `1px solid ${tomo.color}40`,
+                  }}
+                >
+                  {tomo.age}
+                </span>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
