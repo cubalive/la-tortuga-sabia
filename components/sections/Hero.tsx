@@ -12,9 +12,6 @@ const HERO_BG = "/images/hero-bg.jpg";
 const QuellinaUniverse = dynamic(() => import("@/components/QuellinaUniverse"), { ssr: false });
 const ShapeBlur = dynamic(() => import("@/components/effects/ShapeBlur"), { ssr: false });
 
-const TITLE = "La Tortuga Sabia";
-const QUOTE = "Cada cuento es una estrella que ilumina el corazón de un niño";
-
 const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   id: i,
   x: Math.random() * 100,
@@ -25,20 +22,12 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
 }));
 
 export default function Hero() {
-  const [charIndex, setCharIndex] = useState(0);
-  const [showQuote, setShowQuote] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
 
   useEffect(() => {
-    if (charIndex < TITLE.length) {
-      const t = setTimeout(() => setCharIndex((c) => c + 1), 100);
-      return () => clearTimeout(t);
-    } else {
-      const t = setTimeout(() => setShowQuote(true), 400);
-      return () => clearTimeout(t);
-    }
-  }, [charIndex]);
-
-  const words = QUOTE.split(" ");
+    const t = setTimeout(() => setShowButtons(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
@@ -91,46 +80,74 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-3xl mx-auto flex flex-col items-center justify-center">
-        {/* Title — letter by letter with micro-glow */}
-        <h1 className="font-cinzel text-5xl md:text-7xl font-bold mb-6 min-h-[1.2em]" style={{ color: "#FEFAE0", textShadow: "0 0 30px rgba(201,136,42,0.3)" }}>
-          {TITLE.split("").map((char, i) => (
-            <motion.span
-              key={i}
-              className="inline-block"
-              initial={{ opacity: 0, y: 20 }}
-              animate={i < charIndex ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              style={char === " " ? { width: "0.3em" } : {}}
-            >
-              {char === " " ? "\u00A0" : char}
-            </motion.span>
-          ))}
-          {charIndex < TITLE.length && (
-            <span className="inline-block w-[3px] h-[0.8em] bg-gold ml-1 align-middle" style={{ animation: "typewriter-cursor 0.8s infinite" }} />
-          )}
-        </h1>
+        {/* Title — 3D wood texture white */}
+        <motion.h1
+          initial={{ opacity: 0, y: 50, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-6"
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontWeight: 900,
+            fontSize: "clamp(3rem, 8vw, 7rem)",
+            color: "transparent",
+            backgroundImage: `repeating-linear-gradient(
+              90deg,
+              rgba(255,255,255,0.95) 0px,
+              rgba(240,235,220,0.9) 2px,
+              rgba(255,255,255,0.95) 3px,
+              rgba(230,220,200,0.85) 5px,
+              rgba(255,255,255,0.9) 7px,
+              rgba(245,238,225,0.95) 10px,
+              rgba(255,255,255,0.85) 13px,
+              rgba(235,228,215,0.9) 16px,
+              rgba(255,255,255,0.95) 20px
+            )`,
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            backgroundSize: "20px 100%",
+            textShadow: `
+              3px 3px 0px rgba(180,140,80,0.4),
+              6px 6px 0px rgba(150,110,60,0.3),
+              9px 9px 0px rgba(120,85,40,0.2),
+              12px 12px 15px rgba(0,0,0,0.4),
+              -1px -1px 0px rgba(255,255,255,0.8),
+              0px 0px 30px rgba(255,220,120,0.3)
+            `,
+            letterSpacing: "0.05em",
+            lineHeight: 1.1,
+            filter: "drop-shadow(0 0 20px rgba(201,136,42,0.4))",
+            textAlign: "center",
+          }}
+        >
+          La Tortuga Sabia
+        </motion.h1>
 
-        {/* Subtitle — word by word */}
-        <p className="font-playfair italic text-lg md:text-2xl min-h-[2em] mb-12" style={{ color: "#C9882A" }}>
-          {showQuote &&
-            words.map((word, i) => (
-              <motion.span
-                key={i}
-                className="inline-block mr-[0.3em]"
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15, duration: 0.4 }}
-              >
-                {word}
-              </motion.span>
-            ))}
-        </p>
+        {/* Subtitle — italic gold gradient */}
+        <motion.p
+          className="min-h-[2em] mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={showButtons ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontStyle: "italic",
+            fontSize: "clamp(1rem, 2.5vw, 1.5rem)",
+            color: "transparent",
+            backgroundImage: "linear-gradient(135deg, #C9882A, #FFD700, #C9882A)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            filter: "drop-shadow(0 0 10px rgba(201,136,42,0.6))",
+          }}
+        >
+          Cada cuento es una estrella que ilumina el corazón de un niño
+        </motion.p>
 
         {/* Buttons */}
         <motion.div
           className="flex flex-col sm:flex-row gap-4 justify-center"
           initial={{ opacity: 0, y: 20 }}
-          animate={showQuote ? { opacity: 1, y: 0 } : {}}
+          animate={showButtons ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 1.5, duration: 0.6 }}
         >
           <MagicButton type="primary" href="#tomos">
