@@ -43,9 +43,10 @@ export default function Navbar() {
           <Image
             src={QUELINA_LOGO}
             alt="Quelina"
-            width={40}
-            height={40}
+            width={44}
+            height={44}
             className="rounded-full"
+            style={{ border: '2px solid #C9882A', boxShadow: '0 0 15px rgba(201,136,42,0.5)' }}
           />
           <span className="font-cinzel text-sm text-cream font-bold tracking-wider group-hover:text-gold transition-colors">
             La Tortuga Sabia

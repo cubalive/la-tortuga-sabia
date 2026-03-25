@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import MagicButton from "@/components/ui/MagicButton";
 
-const HERO_BG = "/images/hero-bg.png";
+const HERO_BG = "/images/hero-bg.jpg";
 
 const QuellinaUniverse = dynamic(() => import("@/components/QuellinaUniverse"), { ssr: false });
 
@@ -48,9 +48,8 @@ export default function Hero() {
           fill
           className="object-cover"
           priority
+          style={{ opacity: 0.4 }}
         />
-        {/* Dark overlay 60% */}
-        <div className="absolute inset-0 bg-black/60" />
       </div>
 
       {/* Layer 2: nebulas */}
