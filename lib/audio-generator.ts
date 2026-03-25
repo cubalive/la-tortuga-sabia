@@ -1,15 +1,17 @@
 import OpenAI from "openai";
 import { getServiceSupabase } from "./supabase";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // Genera narración completa del cuento
 export async function generateNarration(storyId: string, texto: string) {
   const supabase = getServiceSupabase();
 
-  const response = await openai.audio.speech.create({
+  const response = await getOpenAI().audio.speech.create({
     model: "tts-1-hd",
     input: texto,
     voice: "nova",
@@ -48,7 +50,7 @@ export async function generateQuelinaVoice(
 ) {
   const supabase = getServiceSupabase();
 
-  const response = await openai.audio.speech.create({
+  const response = await getOpenAI().audio.speech.create({
     model: "tts-1-hd",
     input: quelinaMomento,
     voice: "onyx",

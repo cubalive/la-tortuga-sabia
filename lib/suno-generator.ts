@@ -1,9 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getServiceSupabase } from "./supabase";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+function getAnthropic() {
+  return new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+  });
+}
 
 export async function generateSunoPrompt(
   storyId: string,
@@ -22,7 +24,7 @@ export async function generateSunoPrompt(
     4: "Epic but gentle, piano and strings, emotional depth, 110 BPM, coming of age",
   };
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropic().messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1000,
     messages: [
