@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useInView } from "react-intersection-observer";
 
 const QUOTE =
@@ -78,73 +79,15 @@ export default function Quote() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* Quelina SVG — big and detailed */}
-          <svg
-            width="160"
-            height="160"
-            viewBox="0 0 160 160"
-            fill="none"
+          {/* Quelina character image */}
+          <Image
+            src="/images/quelina-happy.png"
+            alt="Quelina"
+            width={200}
+            height={200}
             className="relative z-10"
-          >
-            {/* Body */}
-            <ellipse cx="80" cy="85" rx="42" ry="30" fill="#2D6A4F" />
-            {/* Shell */}
-            <ellipse cx="80" cy="75" rx="35" ry="28" fill="#1B4332" />
-            {/* Shell pattern — hex lines */}
-            <path d="M55 60 Q80 48 105 60" stroke="#C9882A" strokeWidth="1.2" fill="none" opacity="0.5" />
-            <path d="M50 72 Q80 58 110 72" stroke="#C9882A" strokeWidth="1.2" fill="none" opacity="0.5" />
-            <path d="M53 84 Q80 70 107 84" stroke="#C9882A" strokeWidth="1.2" fill="none" opacity="0.5" />
-            <path d="M80 50 L80 95" stroke="#C9882A" strokeWidth="0.8" opacity="0.3" />
-            <path d="M65 52 L72 92" stroke="#C9882A" strokeWidth="0.8" opacity="0.3" />
-            <path d="M95 52 L88 92" stroke="#C9882A" strokeWidth="0.8" opacity="0.3" />
-            {/* Constellation dots on shell */}
-            {[
-              [70, 58],
-              [90, 58],
-              [60, 70],
-              [80, 65],
-              [100, 70],
-              [66, 82],
-              [94, 82],
-              [80, 78],
-            ].map(([cx, cy], i) => (
-              <motion.circle
-                key={i}
-                cx={cx}
-                cy={cy}
-                r="1.5"
-                fill="#C9882A"
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.3,
-                }}
-              />
-            ))}
-            {/* Head */}
-            <circle cx="118" cy="82" r="14" fill="#40916C" />
-            {/* Eyes */}
-            <circle cx="124" cy="78" r="3" fill="#050d12" />
-            <circle cx="125.5" cy="76.5" r="1.2" fill="white" />
-            <circle cx="124" cy="86" r="2.5" fill="#050d12" />
-            <circle cx="125" cy="84.5" r="1" fill="white" />
-            {/* Smile */}
-            <path
-              d="M120 90 Q124 94 128 90"
-              stroke="#1B4332"
-              strokeWidth="1.5"
-              fill="none"
-              strokeLinecap="round"
-            />
-            {/* Legs */}
-            <ellipse cx="55" cy="108" rx="8" ry="10" fill="#40916C" />
-            <ellipse cx="105" cy="108" rx="8" ry="10" fill="#40916C" />
-            <ellipse cx="65" cy="112" rx="7" ry="9" fill="#40916C" />
-            <ellipse cx="95" cy="112" rx="7" ry="9" fill="#40916C" />
-            {/* Tail */}
-            <ellipse cx="38" cy="88" rx="6" ry="4" fill="#40916C" transform="rotate(-20 38 88)" />
-          </svg>
+            style={{ filter: "drop-shadow(0 0 25px rgba(201,136,42,0.6))" }}
+          />
         </motion.div>
 
         {/* Title */}

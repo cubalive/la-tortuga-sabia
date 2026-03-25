@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
-const QUELINA_LOGO = "/images/quelina-logo.png";
+const QUELINA_LOGO = "/images/quelina-normal.png";
 
 function useGlitch() {
   const ref = useRef<HTMLElement>(null);
@@ -62,8 +62,7 @@ export default function Navbar() {
             alt="Quelina"
             width={44}
             height={44}
-            className="rounded-full"
-            style={{ border: '2px solid #C9882A', boxShadow: '0 0 15px rgba(201,136,42,0.5)' }}
+            style={{ borderRadius: "50%", border: "2px solid #C9882A", objectFit: "cover", boxShadow: "0 0 15px rgba(201,136,42,0.5)" }}
           />
           <span className="font-cinzel text-sm text-cream font-bold tracking-wider group-hover:text-gold transition-colors">
             La Tortuga Sabia

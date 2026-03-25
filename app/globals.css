@@ -255,6 +255,12 @@ h1, h2, h3, .navbar-title {
   50% { opacity: 0.3; }
 }
 
+/* ═══ Float Animation ═══ */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
 /* ═══ Glitch Effect ═══ */
 @keyframes glitch {
   0% { transform: translate(0); filter: none; }
