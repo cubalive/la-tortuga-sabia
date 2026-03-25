@@ -10,6 +10,7 @@ import MagicParticles from "@/components/effects/MagicParticles";
 const HERO_BG = "/images/hero-bg.jpg";
 
 const QuellinaUniverse = dynamic(() => import("@/components/QuellinaUniverse"), { ssr: false });
+const ShapeBlur = dynamic(() => import("@/components/effects/ShapeBlur"), { ssr: false });
 
 const TITLE = "La Tortuga Sabia";
 const QUOTE = "Cada cuento es una estrella que ilumina el corazón de un niño";
@@ -41,6 +42,19 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+      {/* Layer 0: WebGL ShapeBlur fluid */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <ShapeBlur
+          shapeSize={0.8}
+          roundness={0.5}
+          borderSize={0.05}
+          circleSize={0.3}
+          color1="#2D6A4F"
+          color2="#C9882A"
+          color3="#050d12"
+        />
+      </div>
+
       {/* Layer 1: DALL-E hero background */}
       <div className="absolute inset-0">
         <Image
