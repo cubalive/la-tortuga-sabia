@@ -113,24 +113,42 @@ export default function Tomos() {
           >
             {/* Door front */}
             <motion.div
-              className="absolute inset-0 z-10 flex flex-col justify-end p-6"
+              className="absolute inset-0 z-10"
               style={{ background: `linear-gradient(135deg, ${tomo.color}22, #050d12)`, backfaceVisibility: "hidden" }}
               animate={{ rotateY: hovered === i ? -25 : 0, originX: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <span className="font-cinzel text-5xl font-bold mb-2" style={{ color: tomo.color, opacity: 0.3 }}>
+              <span
+                className="absolute font-cinzel text-5xl font-bold z-[2]"
+                style={{ color: tomo.color, opacity: 0.3, bottom: 80, left: 20 }}
+              >
                 {tomo.num}
               </span>
-              <h3 className="font-cinzel text-xl text-cream font-bold">Tomo {tomo.num}</h3>
-              <p className="font-playfair text-gold text-sm italic">{tomo.title}</p>
+              <h3
+                className="absolute font-cinzel text-xl text-cream font-bold z-[3]"
+                style={{ bottom: 48, left: 20 }}
+              >
+                Tomo {tomo.num}
+              </h3>
+              <p
+                className="absolute font-playfair text-gold text-sm italic z-[4]"
+                style={{ bottom: 24, left: 20 }}
+              >
+                {tomo.title}
+              </p>
             </motion.div>
 
             {/* World behind door */}
-            <div className="absolute inset-0 p-6 flex flex-col justify-end" style={{ background: tomo.bg }}>
+            <div className="absolute inset-0" style={{ background: tomo.bg }}>
               {tomo.effect === "fireflies" && <Fireflies />}
               {tomo.effect === "waves" && <Waves />}
               {tomo.effect === "aurora" && <Aurora />}
-              <p className="text-gray-300 text-sm leading-relaxed relative z-10">{tomo.desc}</p>
+              <p
+                className="absolute text-gray-300 text-xs leading-relaxed z-[5]"
+                style={{ bottom: 20, left: 20, maxWidth: "80%" }}
+              >
+                {tomo.desc}
+              </p>
             </div>
           </motion.div>
         ))}
