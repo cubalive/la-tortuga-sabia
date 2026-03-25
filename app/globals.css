@@ -84,6 +84,14 @@ body {
   font-family: var(--font-playfair), "Playfair Display", "Georgia", serif;
 }
 
+h1, h2, h3, .navbar-title {
+  font-family: var(--font-cinzel), serif;
+}
+
+.quote, .subtitle, em, i {
+  font-family: var(--font-playfair), serif;
+}
+
 /* ═══ Nebula Backgrounds ═══ */
 .nebula-bg {
   position: relative;

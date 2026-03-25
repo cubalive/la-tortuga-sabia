@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useInView } from "react-intersection-observer";
 
 const tomos = [
@@ -10,6 +11,7 @@ const tomos = [
     desc: "Quelina descubre un bosque donde las luciérnagas guardan secretos antiguos y los árboles susurran canciones de cuna.",
     age: "2-4 años",
     bg: "linear-gradient(160deg, #0a2a1a 0%, #050d12 60%)",
+    cover: "/images/tomo-1.png",
     color: "#40916C",
     effect: "fireflies" as const,
   },
@@ -19,6 +21,7 @@ const tomos = [
     desc: "Nuevos amigos se unen a la aventura. Cada animal tiene una canción única y una lección especial para los niños.",
     age: "3-5 años",
     bg: "linear-gradient(160deg, #1a2a0a 0%, #050d12 60%)",
+    cover: "/images/tomo-2.png",
     color: "#7B68EE",
     effect: "particles" as const,
   },
@@ -28,6 +31,7 @@ const tomos = [
     desc: "Un río mágico lleva a Quelina por paisajes de ensueño donde la música cobra vida y los sueños se hacen realidad.",
     age: "4-6 años",
     bg: "linear-gradient(160deg, #0a1a2a 0%, #050d12 60%)",
+    cover: "/images/tomo-3.png",
     color: "#4682B4",
     effect: "waves" as const,
   },
@@ -37,6 +41,7 @@ const tomos = [
     desc: "La aventura más grande: escalar la montaña donde vive la aurora boreal y descubrir el secreto de la verdadera sabiduría.",
     age: "5-8 años",
     bg: "linear-gradient(160deg, #1a0a2a 0%, #050d12 60%)",
+    cover: "/images/tomo-4.png",
     color: "#C9882A",
     effect: "aurora" as const,
   },
@@ -183,6 +188,14 @@ export default function Tomos() {
                 boxShadow: `0 20px 40px ${tomo.color}66`,
               }}
             >
+              {/* DALL-E cover image */}
+              <Image
+                src={tomo.cover}
+                alt={`Tomo ${tomo.num} — ${tomo.title}`}
+                fill
+                className="object-cover"
+              />
+
               {/* Animated background effect */}
               <Effect />
 

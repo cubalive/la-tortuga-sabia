@@ -5,39 +5,59 @@ import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import MagicButton from "@/components/ui/MagicButton";
 
-const plans = [
+const formats = [
   {
-    name: "Explorador",
-    price: "Gratis",
-    period: "",
-    features: ["3 cuentos de muestra", "Acceso a la comunidad", "Newsletter semanal"],
-    cta: "Empezar Gratis",
-    popular: false,
-  },
-  {
-    name: "Aventurero",
+    name: "Digital",
     price: "$9.99",
-    period: "/mes",
-    features: ["Todos los cuentos", "Audiocuentos con música", "Contenido exclusivo", "Sin anuncios"],
-    cta: "Suscribirse",
-    popular: true,
+    description: "Descarga instantánea",
+    features: [
+      "50 cuentos del Tomo I",
+      "250 ilustraciones a color",
+      "Formato PDF de alta calidad",
+      "Acceso inmediato",
+    ],
+    cta: "Descargar Ahora",
+    popular: false,
+    buttonType: "secondary" as const,
   },
   {
-    name: "Sabio",
+    name: "Premium",
     price: "$19.99",
-    period: "/mes",
-    features: ["Todo lo de Aventurero", "Cuentos personalizados", "Acceso anticipado", "Merchandise exclusivo", "Sesión con autores"],
-    cta: "Ser Sabio",
+    description: "La experiencia completa",
+    features: [
+      "Todo lo del PDF Digital",
+      "Audiolibro narrado (50 MP3)",
+      "Voz especial de Quelina",
+      "Música original Suno",
+      "QR en cada cuento → audio",
+    ],
+    cta: "Conseguir Ahora",
+    popular: true,
+    buttonType: "primary" as const,
+  },
+  {
+    name: "Libro Físico",
+    price: "$24.99",
+    description: "Impreso y enviado a tu puerta",
+    features: [
+      "Libro impreso tapa dura",
+      "108 páginas a color",
+      "QR codes para el audio",
+      "Envío gratis en USA",
+      "PDF digital incluido",
+    ],
+    cta: "Ordenar Ahora",
     popular: false,
+    buttonType: "secondary" as const,
   },
 ];
 
-function HoloCard({
-  plan,
+function FormatCard({
+  format,
   index,
   inView,
 }: {
-  plan: (typeof plans)[number];
+  format: (typeof formats)[number];
   index: number;
   inView: boolean;
 }) {
@@ -64,33 +84,31 @@ function HoloCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setGradient("transparent")}
     >
-      {/* Shimmer border for popular */}
-      {plan.popular && (
-        <div className="absolute inset-0 rounded-2xl p-[2px] shimmer-border">
-          <div className="absolute inset-[2px] rounded-[14px] bg-[#0a1a24]" />
-        </div>
+      {format.popular && (
+        <div className="absolute inset-0 rounded-2xl p-[2px]" style={{ background: "var(--jade)", }} />
       )}
 
       <div
-        className={`relative z-10 p-8 rounded-2xl border ${
-          plan.popular ? "border-transparent" : "border-white/5"
-        } bg-[#0a1a24]`}
+        className={`relative z-10 p-8 rounded-2xl ${
+          format.popular ? "border-2 border-jade" : "border border-white/5"
+        } bg-[#0a1a24] h-full flex flex-col`}
         style={{ backgroundImage: gradient }}
       >
-        {plan.popular && (
+        {format.popular && (
           <span className="absolute top-4 right-4 text-xs px-3 py-1 rounded-full bg-gold/20 text-gold font-semibold">
-            Popular
+            Más Popular
           </span>
         )}
 
-        <h3 className="font-cinzel text-xl text-cream font-bold mb-2">{plan.name}</h3>
+        <h3 className="font-cinzel text-xl text-cream font-bold mb-1">{format.name}</h3>
+        <p className="text-sm text-gray-400 mb-4">{format.description}</p>
         <div className="mb-6">
-          <span className="text-4xl font-bold text-gold">{plan.price}</span>
-          <span className="text-gray-400 text-sm">{plan.period}</span>
+          <span className="text-4xl font-bold text-gold">{format.price}</span>
+          <span className="text-sm text-gray-500 ml-2">pago único</span>
         </div>
 
-        <ul className="space-y-3 mb-8">
-          {plan.features.map((f) => (
+        <ul className="space-y-3 mb-8 flex-1">
+          {format.features.map((f) => (
             <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
               <span className="text-jade">✓</span>
               {f}
@@ -98,8 +116,8 @@ function HoloCard({
           ))}
         </ul>
 
-        <MagicButton type={plan.popular ? "primary" : "secondary"} className="w-full">
-          {plan.cta}
+        <MagicButton type={format.buttonType} className="w-full">
+          {format.cta}
         </MagicButton>
       </div>
     </motion.div>
@@ -116,22 +134,40 @@ export default function Pricing() {
         initial={{ opacity: 0, y: 30 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
       >
-        Planes Mágicos
+        El Libro
       </motion.h2>
       <motion.p
-        className="text-center text-gray-400 mb-16 text-lg"
+        className="text-center text-gray-400 mb-16 text-lg font-playfair italic"
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
         transition={{ delay: 0.2 }}
       >
-        Elige tu aventura
+        Elige tu forma de leer con Quelina
       </motion.p>
 
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {plans.map((plan, i) => (
-          <HoloCard key={plan.name} plan={plan} index={i} inView={inView} />
+        {formats.map((format, i) => (
+          <FormatCard key={format.name} format={format} index={i} inView={inView} />
         ))}
       </div>
+
+      {/* Colección Completa */}
+      <motion.div
+        className="max-w-2xl mx-auto mt-16 text-center rounded-2xl border border-gold/20 bg-[#0a1a24] p-8"
+        initial={{ opacity: 0, y: 30 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ delay: 0.8, duration: 0.6 }}
+      >
+        <p className="text-gray-400 mb-2 text-sm">¿Quieres los 4 tomos?</p>
+        <h3 className="font-cinzel text-2xl text-cream font-bold mb-1">Colección Completa</h3>
+        <div className="mb-2">
+          <span className="text-4xl font-bold text-gold">$49.99</span>
+        </div>
+        <p className="text-sm text-gray-400 mb-6">Todos los formatos de los 4 tomos</p>
+        <MagicButton type="secondary" className="mx-auto">
+          Ver Colección
+        </MagicButton>
+      </motion.div>
     </section>
   );
 }

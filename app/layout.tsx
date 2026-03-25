@@ -11,7 +11,7 @@ const cinzel = Cinzel({
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "700"],
   style: ["normal", "italic"],
   variable: "--font-playfair",
   display: "swap",
@@ -49,7 +49,7 @@ export default function RootLayout({
       <head>
         <meta charSet="UTF-8" />
       </head>
-      <body className="min-h-screen bg-dark text-cream antialiased">
+      <body className={`${cinzel.variable} ${playfair.variable} min-h-screen bg-dark text-cream antialiased`}>
         {children}
       </body>
     </html>
