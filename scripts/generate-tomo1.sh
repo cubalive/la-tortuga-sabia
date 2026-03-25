@@ -132,16 +132,20 @@ except Exception as e:
       continue
     fi
 
-    ILPROMPT=$(python3 -c "
+    # Build DALL-E request JSON safely via python (avoids shell quoting issues)
+    DALLE_BODY=$(python3 << PYEOF
 import json
-s = json.load(open('$STORY_DIR/story-${NUM}.json'))
-print(s.get('il_${IL}','cute baby animal in magical forest'))
-" 2>/dev/null)
+s = json.load(open("$STORY_DIR/story-${NUM}.json"))
+p = s.get("il_${IL}", "cute baby animal in magical forest")
+p += " Watercolor children book, Studio Ghibli style, warm colors, no text, cute magical."
+print(json.dumps({"model":"dall-e-3","prompt":p,"n":1,"size":"1024x1024","quality":"hd","style":"vivid"}))
+PYEOF
+    )
 
     IMGURL=$(curl -s --max-time 120 https://api.openai.com/v1/images/generations \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer $OKEY" \
-      -d "$(python3 -c "import json; print(json.dumps({'model':'dall-e-3','prompt':json.loads(json.dumps('$ILPROMPT'))+' Watercolor children book, Studio Ghibli style, warm colors, no text, cute magical.','n':1,'size':'1024x1024','quality':'hd','style':'vivid'}))" 2>/dev/null)" 2>&1 \
+      -d "$DALLE_BODY" 2>&1 \
       | python3 -c "import sys,json; print(json.load(sys.stdin)['data'][0]['url'])" 2>/dev/null)
 
     if [ -n "$IMGURL" ] && [ "$IMGURL" != "None" ]; then
