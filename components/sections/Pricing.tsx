@@ -36,7 +36,7 @@ const formats = [
     buttonType: "primary" as const,
   },
   {
-    name: "Coleccionista",
+    name: "Libro Físico",
     price: "$24.99",
     description: "Impreso y enviado a tu puerta",
     features: [
@@ -104,6 +104,7 @@ function FormatCard({
         <p className="text-sm text-gray-400 mb-4">{format.description}</p>
         <div className="mb-6">
           <span className="text-4xl font-bold text-gold">{format.price}</span>
+          <span className="text-sm text-gray-500 ml-2">pago único</span>
         </div>
 
         <ul className="space-y-3 mb-8 flex-1">
@@ -164,7 +165,7 @@ export default function Pricing() {
         </div>
         <p className="text-sm text-gray-400 mb-6">Todos los formatos de los 4 tomos</p>
         <MagicButton type="secondary" className="mx-auto">
-          Ver Colección Completa
+          Ver Colección
         </MagicButton>
       </motion.div>
     </section>
