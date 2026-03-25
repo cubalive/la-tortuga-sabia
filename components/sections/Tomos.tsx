@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Tilt from "react-parallax-tilt";
 import { useInView } from "react-intersection-observer";
 
 const tomos = [
@@ -11,7 +12,7 @@ const tomos = [
     desc: "Quelina descubre un bosque donde las luciérnagas guardan secretos antiguos y los árboles susurran canciones de cuna.",
     age: "2-4 años",
     bg: "linear-gradient(160deg, #0a2a1a 0%, #050d12 60%)",
-    cover: "/images/tomo-1.png",
+    cover: "/images/tomo-1.jpg",
     color: "#40916C",
     effect: "fireflies" as const,
   },
@@ -21,7 +22,7 @@ const tomos = [
     desc: "Nuevos amigos se unen a la aventura. Cada animal tiene una canción única y una lección especial para los niños.",
     age: "3-5 años",
     bg: "linear-gradient(160deg, #1a2a0a 0%, #050d12 60%)",
-    cover: "/images/tomo-2.png",
+    cover: "/images/tomo-2.jpg",
     color: "#7B68EE",
     effect: "particles" as const,
   },
@@ -31,7 +32,7 @@ const tomos = [
     desc: "Un río mágico lleva a Quelina por paisajes de ensueño donde la música cobra vida y los sueños se hacen realidad.",
     age: "4-6 años",
     bg: "linear-gradient(160deg, #0a1a2a 0%, #050d12 60%)",
-    cover: "/images/tomo-3.png",
+    cover: "/images/tomo-3.jpg",
     color: "#4682B4",
     effect: "waves" as const,
   },
@@ -41,7 +42,7 @@ const tomos = [
     desc: "La aventura más grande: escalar la montaña donde vive la aurora boreal y descubrir el secreto de la verdadera sabiduría.",
     age: "5-8 años",
     bg: "linear-gradient(160deg, #1a0a2a 0%, #050d12 60%)",
-    cover: "/images/tomo-4.png",
+    cover: "/images/tomo-4.jpg",
     color: "#C9882A",
     effect: "aurora" as const,
   },
@@ -176,17 +177,22 @@ export default function Tomos() {
         {tomos.map((tomo, i) => {
           const Effect = effectMap[tomo.effect];
           return (
-            <motion.div
+            <Tilt
               key={tomo.num}
+              tiltMaxAngleX={10}
+              tiltMaxAngleY={10}
+              glareEnable={true}
+              glareMaxOpacity={0.2}
+              glareColor={tomo.color}
+              glareBorderRadius="16px"
+              className="rounded-2xl"
+            >
+            <motion.div
               className="relative rounded-2xl overflow-hidden border border-white/5 group"
               style={{ height: 400, background: tomo.bg }}
               initial={{ opacity: 0, y: 40 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.2 + i * 0.15, duration: 0.6 }}
-              whileHover={{
-                scale: 1.03,
-                boxShadow: `0 20px 40px ${tomo.color}66`,
-              }}
             >
               {/* DALL-E cover image */}
               <Image
@@ -245,6 +251,7 @@ export default function Tomos() {
                 </span>
               </div>
             </motion.div>
+            </Tilt>
           );
         })}
       </div>

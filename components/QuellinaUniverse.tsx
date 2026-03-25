@@ -2,8 +2,10 @@
 
 import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Stars, Line } from "@react-three/drei";
+import { OrbitControls, Stars } from "@react-three/drei";
+import { EffectComposer, Bloom, ChromaticAberration, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
+import { NebulaShader, ConstellationWeb, FloatingOrbs, RisingParticles, AuroraRing } from "./effects/HeroEffects";
 
 /* ═══ Cute Quelina Turtle ═══ */
 function Quelina() {
@@ -299,6 +301,17 @@ function Scene() {
       <Planet color="#4682B4" ringColor="#6BA3D6" radius={4.5} speed={0.18} size={0.2} tilt={0.2} />
       <Planet color="#DB7093" ringColor="#FFB6C1" radius={5.4} speed={0.12} size={0.13} tilt={0.5} />
       <GoldenDust />
+      {/* 5 Elite Effects */}
+      <NebulaShader />
+      <ConstellationWeb />
+      <FloatingOrbs />
+      <RisingParticles />
+      <AuroraRing />
+      <EffectComposer>
+        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} intensity={0.8} />
+        <ChromaticAberration offset={new THREE.Vector2(0.0005, 0.0005)} />
+        <Vignette eskil={false} offset={0.1} darkness={0.8} />
+      </EffectComposer>
     </>
   );
 }

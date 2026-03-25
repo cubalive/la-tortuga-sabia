@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import LenisProvider from "@/components/effects/LenisProvider";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import SectionDivider from "@/components/ui/SectionDivider";
@@ -15,12 +16,14 @@ import Footer from "@/components/sections/Footer";
 
 const LoadingScreen = dynamic(() => import("@/components/LoadingScreen"), { ssr: false });
 const CustomCursor = dynamic(() => import("@/components/CustomCursor"), { ssr: false });
+const RippleEffect = dynamic(() => import("@/components/effects/RippleEffect"), { ssr: false });
 
 export default function Home() {
   return (
-    <>
+    <LenisProvider>
       <LoadingScreen />
       <CustomCursor />
+      <RippleEffect />
       <Navbar />
       <ScrollProgress />
       <main>
@@ -40,6 +43,6 @@ export default function Home() {
         <SectionDivider variant="wave" colorFrom="#050d12" colorTo="#050d12" flip />
         <Footer />
       </main>
-    </>
+    </LenisProvider>
   );
 }

@@ -1,10 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 const QUELINA_LOGO = "/images/quelina-logo.png";
+
+function useGlitch() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const trigger = () => {
+      ref.current?.classList.add("glitch-active");
+      setTimeout(() => ref.current?.classList.remove("glitch-active"), 200);
+      const next = 8000 + Math.random() * 4000;
+      setTimeout(trigger, next);
+    };
+    const timeout = setTimeout(trigger, 5000 + Math.random() * 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+  return ref;
+}
 
 const links = [
   { label: "Inicio", href: "#" },
@@ -17,6 +32,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const glitchRef = useGlitch();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -39,13 +55,14 @@ export default function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2 group">
+        <a href="#" className="flex items-center gap-2 group" ref={glitchRef as React.RefObject<HTMLAnchorElement>}>
           <Image
             src={QUELINA_LOGO}
             alt="Quelina"
-            width={40}
-            height={40}
+            width={44}
+            height={44}
             className="rounded-full"
+            style={{ border: '2px solid #C9882A', boxShadow: '0 0 15px rgba(201,136,42,0.5)' }}
           />
           <span className="font-cinzel text-sm text-cream font-bold tracking-wider group-hover:text-gold transition-colors">
             La Tortuga Sabia

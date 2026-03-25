@@ -1,134 +1,112 @@
 import OpenAI from "openai";
+import https from "https";
+import fs from "fs";
+import path from "path";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 300_000,
 });
 
-async function generateQuelinaLogo() {
-  console.log("Generating Quelina logo...");
-  const response = await openai.images.generate({
+function downloadImage(url: string, filepath: string): Promise<void> {
+  const dir = path.dirname(filepath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(filepath);
+    https
+      .get(url, (response) => {
+        response.pipe(file);
+        file.on("finish", () => {
+          file.close();
+          resolve();
+        });
+      })
+      .on("error", reject);
+  });
+}
+
+async function generateAll() {
+  console.log("=== DALL-E 3 Asset Generation ===\n");
+
+  console.log("Generando logo de Quelina...");
+  const logo = await openai.images.generate({
     model: "dall-e-3",
-    prompt: `Quelina, an ancient wise turtle character logo.
-    Chibi style, extremely cute and magical.
-    Shell has golden constellation patterns glowing.
-    Big expressive wise eyes with golden sparkles.
-    Soft jade green color #2D6A4F.
-    Golden accents #C9882A on shell patterns.
-    Circular composition perfect for app icon.
-    Dark background #050d12.
+    prompt: `Quelina the wise turtle, chibi kawaii style logo.
+    Extremely cute, big expressive golden eyes with sparkles.
+    Round shell with glowing golden constellation patterns.
+    Soft jade green body #2D6A4F, golden accents #C9882A.
+    Magical glow around her, dark background.
     Studio Ghibli meets luxury brand aesthetic.
-    High detail, magical, premium quality.
-    No text. Perfect symmetry.`,
+    Perfect circular composition, no text.
+    Ultra detailed, premium quality icon.`,
     size: "1024x1024",
     quality: "hd",
     style: "vivid",
   });
+  await downloadImage(logo.data![0].url!, "public/images/quelina-logo.png");
+  console.log("✅ Logo generado");
 
-  const imageUrl = response.data![0].url!;
-  console.log("Logo URL:", imageUrl);
-  return imageUrl;
-}
-
-async function generateHeroBackground() {
-  console.log("Generating hero background...");
-  const response = await openai.images.generate({
+  console.log("Generando hero background...");
+  const hero = await openai.images.generate({
     model: "dall-e-3",
-    prompt: `Magical cosmic forest at night, children's book illustration.
-    Ancient wise turtle floating in center surrounded by glowing stars.
-    Deep dark background #050d12 with nebulae in jade green and purple.
-    Golden particles and constellation patterns.
+    prompt: `Magical cosmic forest at night, children book illustration.
+    Ancient wise turtle floating in starry universe center.
+    Deep dark space background with jade green and purple nebulae.
+    Golden constellation particles and glowing stars everywhere.
     Four small magical planets orbiting the turtle.
-    Studio Ghibli art style, extremely detailed.
-    Watercolor meets digital art, warm and inviting.
-    Perfect for children's book cover.
-    Ultra high quality, cinematic composition.`,
+    Studio Ghibli art style ultra detailed.
+    Watercolor meets digital art, warm inviting atmosphere.
+    Cinematic wide composition, 16:9 format.`,
     size: "1792x1024",
     quality: "hd",
     style: "vivid",
   });
+  await downloadImage(hero.data![0].url!, "public/images/hero-bg.jpg");
+  console.log("✅ Hero generado");
 
-  const imageUrl = response.data![0].url!;
-  console.log("Hero URL:", imageUrl);
-  return imageUrl;
-}
+  const tomoPrompts = [
+    `Magical enchanted forest at night, children book art.
+    Fireflies creating golden light paths between ancient trees.
+    Cute wise turtle on mossy rock watching tiny forest animals sleep.
+    Deep greens and golds, Studio Ghibli style.
+    Soft moonlight, magical peaceful atmosphere, dreamlike quality.`,
 
-async function generateTomoCovers() {
-  const tomos = [
-    {
-      num: 1,
-      prompt: `Magical enchanted forest at night, children's book illustration.
-      Fireflies creating golden light paths between ancient trees.
-      A cute wise turtle watching from mossy rock.
-      Deep greens and golds, Studio Ghibli style.
-      Magical, peaceful, inviting for young children.
-      Ultra detailed watercolor digital art.`,
-    },
-    {
-      num: 2,
-      prompt: `Colorful forest with animal friends gathered in clearing.
-      Bunny, fox, owl, deer all together listening to a story.
-      Cute wise turtle in center telling tales.
-      Vibrant autumn colors, golden light, magical atmosphere.
-      Studio Ghibli style, children's book illustration.
-      Warm, friendly, full of life and color.`,
-    },
-    {
-      num: 3,
-      prompt: `Magical crystal river through glowing forest.
-      Fish of light swimming in luminous water.
-      Ancient turtle on riverbank under starry sky.
-      Blues, teals and silvers with golden reflections.
-      Children's book illustration, Studio Ghibli style.
-      Mysterious, adventurous, beautiful.`,
-    },
-    {
-      num: 4,
-      prompt: `Majestic mountain peak with northern lights aurora borealis.
-      Ancient wise turtle near mountain top looking at stars.
-      Purple, green and gold aurora filling the sky.
-      Snowy peaks, magical atmosphere, epic scale.
-      Children's book illustration, Studio Ghibli style.
-      Awe-inspiring, magical, triumphant.`,
-    },
+    `Colorful magical forest clearing at golden hour.
+    Bunny, fox, owl, bear cub gathered in circle listening to story.
+    Ancient wise turtle telling tales in center, glowing softly.
+    Vibrant autumn colors, warm light, joyful atmosphere.
+    Studio Ghibli style children book illustration, full of life.`,
+
+    `Crystal magical river through glowing forest at night.
+    Schools of luminous fish swimming in starlit water.
+    Ancient wise turtle on mossy bank under aurora sky.
+    Blues, teals, silvers with golden reflections in water.
+    Studio Ghibli style, mysterious beautiful children illustration.`,
+
+    `Majestic mountain peak with spectacular aurora borealis.
+    Ancient wise turtle near summit looking at infinite stars.
+    Purple green gold aurora filling entire sky magnificently.
+    Snowy peaks, tiny forest below, epic scale magical atmosphere.
+    Studio Ghibli style, awe-inspiring children book illustration.`,
   ];
 
-  const urls: Record<number, string> = {};
-  for (const tomo of tomos) {
-    console.log(`Generating Tomo ${tomo.num} cover...`);
-    const response = await openai.images.generate({
+  for (let i = 0; i < 4; i++) {
+    console.log(`Generando Tomo ${i + 1}...`);
+    const tomo = await openai.images.generate({
       model: "dall-e-3",
-      prompt: tomo.prompt,
+      prompt: tomoPrompts[i],
       size: "1024x1024",
       quality: "hd",
       style: "vivid",
     });
-    const url = response.data![0].url!;
-    urls[tomo.num] = url;
-    console.log(`Tomo ${tomo.num} URL:`, url);
+    await downloadImage(tomo.data![0].url!, `public/images/tomo-${i + 1}.jpg`);
+    console.log(`✅ Tomo ${i + 1} generado`);
+    // Rate limit pause
+    await new Promise((r) => setTimeout(r, 2000));
   }
-  return urls;
+
+  console.log("\n🎉 TODAS LAS IMÁGENES GENERADAS");
+  console.log("Archivos en public/images/");
 }
 
-async function main() {
-  console.log("=== DALL-E 3 Asset Generation ===\n");
-
-  const [logoUrl, heroUrl, tomoUrls] = await Promise.all([
-    generateQuelinaLogo(),
-    generateHeroBackground(),
-    generateTomoCovers(),
-  ]);
-
-  console.log("\n=== ALL GENERATED URLS ===");
-  console.log("Logo:", logoUrl);
-  console.log("Hero:", heroUrl);
-  Object.entries(tomoUrls).forEach(([num, url]) => {
-    console.log(`Tomo ${num}:`, url);
-  });
-
-  console.log("\n=== NEXT STEPS ===");
-  console.log("1. Download images to /public/images/");
-  console.log("2. Update components to reference them");
-  console.log("3. Redeploy to Vercel");
-}
-
-main().catch(console.error);
+generateAll().catch(console.error);

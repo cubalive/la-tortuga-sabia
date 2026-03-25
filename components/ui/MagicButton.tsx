@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import MagneticButton from "@/components/effects/MagneticButton";
 
 interface RippleData {
   x: number;
@@ -106,11 +107,13 @@ export default function MagicButton({
 
   if (href) {
     return (
-      <a href={href} className="inline-block">
-        {content}
-      </a>
+      <MagneticButton>
+        <a href={href} className="inline-block">
+          {content}
+        </a>
+      </MagneticButton>
     );
   }
 
-  return content;
+  return <MagneticButton>{content}</MagneticButton>;
 }

@@ -41,7 +41,19 @@
 
 /* ═══ Base Styles ═══ */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+}
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 body {
@@ -241,6 +253,20 @@ h1, h2, h3, .navbar-title {
 @keyframes matrix-flicker {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
+}
+
+/* ═══ Glitch Effect ═══ */
+@keyframes glitch {
+  0% { transform: translate(0); filter: none; }
+  20% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  40% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+  60% { transform: translate(-1px, 2px); filter: none; }
+  80% { transform: translate(1px, -1px); filter: hue-rotate(45deg); }
+  100% { transform: translate(0); filter: none; }
+}
+
+.glitch-active {
+  animation: glitch 200ms linear;
 }
 
 /* ═══ Reduced Motion ═══ */
