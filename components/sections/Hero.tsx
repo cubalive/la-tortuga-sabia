@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import MagicButton from "@/components/ui/MagicButton";
+import Button3D from "@/components/ui/Button3D";
 import MagicParticles from "@/components/effects/MagicParticles";
 
 const HERO_BG = "/images/hero-bg.jpg";
@@ -150,12 +150,12 @@ export default function Hero() {
           animate={showButtons ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 1.5, duration: 0.6 }}
         >
-          <MagicButton type="primary" href="#tomos">
+          <Button3D variant="jade" href="#tomos" size="lg">
             Descubre los Cuentos
-          </MagicButton>
-          <MagicButton type="secondary" href="#quelina">
-            Conoce a Quelina
-          </MagicButton>
+          </Button3D>
+          <Button3D variant="gold" href="/susurro" size="lg">
+            ✒️ Habla con Quelina
+          </Button3D>
         </motion.div>
       </div>
 
