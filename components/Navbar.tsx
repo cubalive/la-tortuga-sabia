@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+
+const QUELINA_LOGO = "/images/quelina-logo.png";
 
 const links = [
   { label: "Inicio", href: "#" },
@@ -37,13 +40,13 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <a href="#" className="flex items-center gap-2 group">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <ellipse cx="14" cy="13" rx="9" ry="7" fill="#2D6A4F" />
-            <ellipse cx="14" cy="12" rx="7" ry="5" fill="#1B4332" />
-            <circle cx="20" cy="12" r="3.5" fill="#40916C" />
-            <circle cx="21" cy="11" r="1" fill="#050d12" />
-            <circle cx="21.3" cy="10.7" r="0.4" fill="white" />
-          </svg>
+          <Image
+            src={QUELINA_LOGO}
+            alt="Quelina"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
           <span className="font-cinzel text-sm text-cream font-bold tracking-wider group-hover:text-gold transition-colors">
             La Tortuga Sabia
           </span>

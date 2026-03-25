@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import MagicButton from "@/components/ui/MagicButton";
+
+const HERO_BG = "/images/hero-bg.png";
 
 const QuellinaUniverse = dynamic(() => import("@/components/QuellinaUniverse"), { ssr: false });
 
@@ -37,13 +40,23 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Layer 1: base */}
-      <div className="absolute inset-0" style={{ background: "#050d12" }} />
+      {/* Layer 1: DALL-E hero background */}
+      <div className="absolute inset-0">
+        <Image
+          src={HERO_BG}
+          alt="Magical cosmic forest"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Dark overlay 60% */}
+        <div className="absolute inset-0 bg-black/60" />
+      </div>
 
       {/* Layer 2: nebulas */}
       <div className="absolute inset-0 nebula-bg pointer-events-none" />
 
-      {/* Layer 3: 3D scene */}
+      {/* Layer 3: 3D scene floating over the image */}
       <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[60vh] md:h-[70vh] opacity-50">
         <QuellinaUniverse />
       </div>
