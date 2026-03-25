@@ -255,6 +255,20 @@ h1, h2, h3, .navbar-title {
   50% { opacity: 0.3; }
 }
 
+/* ═══ Glitch Effect ═══ */
+@keyframes glitch {
+  0% { transform: translate(0); filter: none; }
+  20% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  40% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+  60% { transform: translate(-1px, 2px); filter: none; }
+  80% { transform: translate(1px, -1px); filter: hue-rotate(45deg); }
+  100% { transform: translate(0); filter: none; }
+}
+
+.glitch-active {
+  animation: glitch 200ms linear;
+}
+
 /* ═══ Reduced Motion ═══ */
 @media (prefers-reduced-motion: reduce) {
   *,

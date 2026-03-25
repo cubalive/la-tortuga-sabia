@@ -16,12 +16,14 @@ import Footer from "@/components/sections/Footer";
 
 const LoadingScreen = dynamic(() => import("@/components/LoadingScreen"), { ssr: false });
 const CustomCursor = dynamic(() => import("@/components/CustomCursor"), { ssr: false });
+const RippleEffect = dynamic(() => import("@/components/effects/RippleEffect"), { ssr: false });
 
 export default function Home() {
   return (
     <LenisProvider>
       <LoadingScreen />
       <CustomCursor />
+      <RippleEffect />
       <Navbar />
       <ScrollProgress />
       <main>
