@@ -116,7 +116,17 @@ function FormatCard({
           ))}
         </ul>
 
-        <MagicButton type={format.buttonType} className="w-full">
+        <MagicButton type={format.buttonType} className="w-full" onClick={async () => {
+          try {
+            const res = await fetch("/api/checkout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ product: format.name === "Digital" ? "digital" : format.name === "Premium" ? "premium" : "fisico" }),
+            });
+            const data = await res.json();
+            if (data.url) window.location.href = data.url;
+          } catch {}
+        }}>
           {format.cta}
         </MagicButton>
       </div>
