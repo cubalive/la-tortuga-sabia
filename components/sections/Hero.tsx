@@ -44,7 +44,7 @@ export default function Hero() {
       <div className="absolute inset-0 nebula-bg pointer-events-none" />
 
       {/* Layer 3: 3D scene */}
-      <div className="absolute inset-0 opacity-50">
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[60vh] md:h-[70vh] opacity-50">
         <QuellinaUniverse />
       </div>
 
@@ -60,7 +60,7 @@ export default function Hero() {
       ))}
 
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-3xl">
+      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto flex flex-col items-center justify-center">
         {/* Title — letter by letter with micro-glow */}
         <h1 className="font-cinzel text-5xl md:text-7xl font-bold mb-6 min-h-[1.2em]" style={{ color: "#FEFAE0", textShadow: "0 0 30px rgba(201,136,42,0.3)" }}>
           {TITLE.split("").map((char, i) => (

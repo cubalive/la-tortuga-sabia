@@ -13,7 +13,7 @@ const links = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -66,22 +66,22 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           className="md:hidden flex flex-col gap-1.5 w-7 h-7 justify-center"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => setIsOpen(!isOpen)}
           aria-label="Menu"
         >
           <motion.span
             className="w-full h-[2px] bg-cream block origin-center"
-            animate={menuOpen ? { rotate: 45, y: 5 } : { rotate: 0, y: 0 }}
+            animate={isOpen ? { rotate: 45, y: 5 } : { rotate: 0, y: 0 }}
             transition={{ duration: 0.3 }}
           />
           <motion.span
             className="w-full h-[2px] bg-cream block"
-            animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
+            animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
             transition={{ duration: 0.2 }}
           />
           <motion.span
             className="w-full h-[2px] bg-cream block origin-center"
-            animate={menuOpen ? { rotate: -45, y: -5 } : { rotate: 0, y: 0 }}
+            animate={isOpen ? { rotate: -45, y: -5 } : { rotate: 0, y: 0 }}
             transition={{ duration: 0.3 }}
           />
         </button>
@@ -89,13 +89,13 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       <AnimatePresence>
-        {menuOpen && (
+        {isOpen && (
           <motion.div
             className="md:hidden border-t border-white/5"
             style={{ background: "rgba(5,13,18,0.95)", backdropFilter: "blur(20px)" }}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
             <div className="px-4 py-4 flex flex-col gap-3">
@@ -107,7 +107,7 @@ export default function Navbar() {
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: i * 0.05 }}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => setIsOpen(false)}
                 >
                   {link.label}
                 </motion.a>
