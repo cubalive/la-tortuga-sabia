@@ -60,6 +60,41 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="La Tortuga Sabia" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "La Tortuga Sabia",
+                url: "https://latortugasabia.vercel.app",
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Book",
+                name: "La Tortuga Sabia — El Bosque Encantado",
+                author: { "@type": "Person", name: "CUBALIVE" },
+                publisher: { "@type": "Organization", name: "PASSKAL LLC" },
+                inLanguage: "es",
+                genre: "Children's Literature",
+                offers: { "@type": "Offer", price: "9.99", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "PASSKAL LLC",
+                url: "https://latortugasabia.vercel.app",
+                logo: "https://latortugasabia.vercel.app/images/quelina-normal.png",
+                sameAs: [
+                  "https://tiktok.com/@latortugasabia_official",
+                  "https://instagram.com/latortugasabiaofficial",
+                  "https://youtube.com/@LaTortugaSabia_official",
+                ],
+              },
+            ]),
+          }}
+        />
       </head>
       <body className={`${cinzel.variable} ${playfair.variable} min-h-screen bg-dark text-cream antialiased`}>
         {children}
