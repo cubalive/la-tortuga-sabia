@@ -81,7 +81,7 @@ export default function Quote() {
 
           {/* Quelina character image */}
           <Image
-            src="/images/quelina-happy.png"
+            src="/images/quelina-happy-transparent.png"
             alt="Quelina"
             width={200}
             height={200}

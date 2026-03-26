@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
-const QUELINA_LOGO = "/images/quelina-normal.png";
+const QUELINA_LOGO = "/images/quelina-transparent.png";
 
 function useGlitch() {
   const ref = useRef<HTMLElement>(null);

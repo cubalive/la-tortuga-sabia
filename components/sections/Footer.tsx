@@ -20,7 +20,7 @@ export default function Footer() {
         animate={{ x: ["-10%", "110%"] }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       >
-        <Image src="/images/quelina-normal.png" alt="Quelina walking" width={80} height={80} style={{ filter: "drop-shadow(0 0 10px rgba(201,136,42,0.4))" }} />
+        <Image src="/images/quelina-transparent.png" alt="Quelina walking" width={80} height={80} style={{ filter: "drop-shadow(0 0 10px rgba(201,136,42,0.4))" }} />
       </motion.div>
       {/* Star field */}
       {Array.from({ length: 40 }).map((_, i) => (

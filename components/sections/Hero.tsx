@@ -86,7 +86,7 @@ export default function Hero() {
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
         <Image
-          src="/images/quelina-normal.png"
+          src="/images/quelina-transparent.png"
           alt="Quelina"
           width={300}
           height={300}
