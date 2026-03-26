@@ -26,13 +26,22 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "La Tortuga Sabia — Cuentos mágicos para niños",
   description:
-    "Descubre el universo mágico de Quelina, la tortuga sabia. Cuentos, música y aventuras para niños.",
-  metadataBase: new URL("https://latortugasabia.com"),
+    "Descubre el universo mágico de Quelina, la tortuga sabia. 50 cuentos terapéuticos para niños de 0-9 años. PDF, audiolibro y libro físico.",
+  metadataBase: new URL("https://latortugasabia.vercel.app"),
+  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
+  themeColor: "#050d12",
   openGraph: {
-    title: "La Tortuga Sabia",
-    description: "Cuentos mágicos para niños — El universo de Quelina",
+    title: "La Tortuga Sabia — 50 Cuentos Mágicos",
+    description: "Cuentos terapéuticos para niños — El universo de Quelina",
     locale: "es_ES",
     type: "website",
+    images: ["/images/portada-b.jpg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "La Tortuga Sabia",
+    description: "50 cuentos mágicos para niños de 0-9 años",
+    images: ["/images/portada-b.jpg"],
   },
 };
 
