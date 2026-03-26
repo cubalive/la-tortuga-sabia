@@ -24,6 +24,14 @@ export async function POST(request: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const { product } = await request.json();
 
+    const country = request.headers.get("x-vercel-ip-country") || request.headers.get("x-country");
+    if (country && country !== "US") {
+      return Response.json(
+        { error: "Solo vendemos en USA por ahora", available_soon: true },
+        { status: 403 }
+      );
+    }
+
     if (!PRICES[product]) {
       return Response.json({ error: "Invalid product" }, { status: 400 });
     }
@@ -44,6 +52,9 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
+      shipping_address_collection: {
+        allowed_countries: ["US"],
+      },
       mode: "payment",
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://latortugasabia.vercel.app"}/gracias?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://latortugasabia.vercel.app"}/#pricing`,

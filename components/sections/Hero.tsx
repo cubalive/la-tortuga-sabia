@@ -32,7 +32,7 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       {/* Layer 0: WebGL ShapeBlur fluid */}
-      <div className="absolute inset-0 overflow-hidden z-0">
+      <div className="hidden md:block absolute inset-0 overflow-hidden z-0">
         <ShapeBlur
           shapeSize={0.8}
           roundness={0.5}
@@ -60,7 +60,7 @@ export default function Hero() {
       <div className="absolute inset-0 nebula-bg pointer-events-none" />
 
       {/* Layer 3: 3D scene floating over the image */}
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[60vh] md:h-[70vh] opacity-50">
+      <div className="hidden md:block absolute inset-x-0 top-1/2 -translate-y-1/2 h-[60vh] md:h-[70vh] opacity-50">
         <QuellinaUniverse />
       </div>
 

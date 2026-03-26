@@ -22,12 +22,11 @@ function useGlitch() {
 }
 
 const links = [
-  { label: "Inicio", href: "#" },
-  { label: "Tomos", href: "#tomos" },
-  { label: "Quelina", href: "#quelina" },
-  { label: "Cuentos", href: "#cuentos" },
+  { label: "Inicio", href: "/" },
+  { label: "Tomos", href: "/#tomos" },
+  { label: "Cuentos", href: "/cuentos" },
   { label: "✒️ Susurro", href: "/susurro" },
-  { label: "Planes", href: "#pricing" },
+  { label: "Comprar", href: "/#pricing" },
 ];
 
 export default function Navbar() {
