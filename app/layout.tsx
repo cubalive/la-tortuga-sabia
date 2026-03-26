@@ -57,6 +57,9 @@ export default function RootLayout({
     >
       <head>
         <meta charSet="UTF-8" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="La Tortuga Sabia" />
       </head>
       <body className={`${cinzel.variable} ${playfair.variable} min-h-screen bg-dark text-cream antialiased`}>
         {children}
