@@ -8,10 +8,10 @@ import Link from "next/link";
 type QuelinaState = "idle" | "listening" | "happy" | "sleeping";
 
 const QUELINA_IMAGES: Record<QuelinaState, string> = {
-  idle: "/images/quelina-normal.png",
-  listening: "/images/quelina-listening.png",
-  happy: "/images/quelina-happy.png",
-  sleeping: "/images/quelina-sleeping.png",
+  idle: "/images/quelina-transparent.png",
+  listening: "/images/quelina-listening-transparent.png",
+  happy: "/images/quelina-happy-transparent.png",
+  sleeping: "/images/quelina-sleeping-transparent.png",
 };
 
 interface Message {

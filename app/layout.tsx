@@ -85,7 +85,7 @@ export default function RootLayout({
                 "@type": "Organization",
                 name: "PASSKAL LLC",
                 url: "https://latortugasabia.vercel.app",
-                logo: "https://latortugasabia.vercel.app/images/quelina-normal.png",
+                logo: "https://latortugasabia.vercel.app/images/quelina-transparent.png",
                 sameAs: [
                   "https://tiktok.com/@latortugasabia_official",
                   "https://instagram.com/latortugasabiaofficial",
