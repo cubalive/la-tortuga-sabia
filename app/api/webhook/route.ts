@@ -1,6 +1,7 @@
 import Stripe from "stripe";
-import { Resend } from "resend";
 import { NextRequest } from "next/server";
+import { sendPurchaseEmail } from "@/lib/email-service";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,38 +22,38 @@ export async function POST(request: NextRequest) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const email = session.customer_details?.email;
-      const name = session.customer_details?.name || "amigo/a";
+      const fullName = session.customer_details?.name || "Querido padre";
+      const firstName = fullName.split(" ")[0];
       const product = session.metadata?.product || "digital";
+      const downloadUrl = "https://latortugasabia.vercel.app/downloads/la-tortuga-sabia-tomo-1.pdf";
 
+      // Send personalized purchase email
       if (email && process.env.RESEND_API_KEY) {
-        const resend = new Resend(process.env.RESEND_API_KEY);
+        await sendPurchaseEmail(email, firstName, product, downloadUrl);
+      }
 
-        await resend.emails.send({
-          from: "Quelina <quelina@latortugasabia.com>",
-          to: email,
-          subject: "🐢 Tu libro de La Tortuga Sabia está listo",
-          html: `
-            <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #050d12; color: #FEFAE0;">
-              <h1 style="color: #C9882A; font-size: 24px; text-align: center;">¡Bienvenido al mundo de Quelina!</h1>
-              <p style="font-size: 16px;">Hola ${name},</p>
-              <p>Las estrellas me avisaron que vendrías... y aquí está tu libro. 🌙</p>
-              ${product === "digital" || product === "premium" ? `
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://latortugasabia.vercel.app/downloads/la-tortuga-sabia-tomo-1.pdf"
-                     style="background: #2D6A4F; color: #FEFAE0; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-size: 16px;">
-                    📖 Descargar tu PDF
-                  </a>
-                </div>
-              ` : ""}
-              <p style="font-style: italic; color: #C9882A;">
-                "Detente un momento... y escucha lo que el viento tiene que decirle a tu corazón."
-              </p>
-              <p style="color: #888; font-size: 12px; margin-top: 40px;">
-                © 2025 CUBALIVE · PASSKAL LLC · Las Vegas, Nevada
-              </p>
-            </div>
-          `,
+      // Save sale to Supabase
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY
+        );
+        await supabase.from("sales").insert({
+          stripe_session_id: session.id,
+          product,
+          amount_usd: (session.amount_total || 0) / 100,
+          customer_email: email,
+          country: "US",
         });
+        await supabase.from("orders").upsert({
+          stripe_id: session.id,
+          customer_email: email || "",
+          product_type: product,
+          tomo: 1,
+          amount_usd: (session.amount_total || 0) / 100,
+          status: "completed",
+          download_url: downloadUrl,
+        }, { onConflict: "stripe_id" });
       }
     }
 
