@@ -26,6 +26,7 @@ const links = [
   { label: "Tomos", href: "/#tomos" },
   { label: "Cuentos", href: "/cuentos" },
   { label: "✒️ Susurro", href: "/susurro" },
+  { label: "📝 Blog", href: "/blog" },
   { label: "Comprar", href: "/#pricing" },
 ];
 
