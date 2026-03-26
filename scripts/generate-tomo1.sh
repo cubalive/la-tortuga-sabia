@@ -137,7 +137,7 @@ except Exception as e:
 import json
 s = json.load(open("$STORY_DIR/story-${NUM}.json"))
 p = s.get("il_${IL}", "cute baby animal in magical forest")
-p += " Watercolor children book, Studio Ghibli style, warm colors, no text, cute magical."
+p += " Watercolor children book illustration, Studio Ghibli style, warm colors, no text, cute magical, soft color wash background in deep forest greens and midnight blues, NO white background, atmospheric depth, painted paper texture, dreamy."
 print(json.dumps({"model":"dall-e-3","prompt":p,"n":1,"size":"1024x1024","quality":"hd","style":"vivid"}))
 PYEOF
     )

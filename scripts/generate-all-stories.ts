@@ -74,7 +74,7 @@ async function generateCover(prompt: string, filepath: string, retries = 2): Pro
     try {
       const resp = await openai.images.generate({
         model: "dall-e-3",
-        prompt: prompt + " Watercolor children book illustration, Studio Ghibli style, warm colors, no text, cute and magical, emotional and atmospheric.",
+        prompt: prompt + " Watercolor children book illustration, Studio Ghibli style, warm colors, no text, cute magical, soft color wash background in deep forest greens and midnight blues, NO white background, atmospheric depth, painted paper texture.",
         size: "1024x1024",
         quality: "hd",
         style: "vivid",
