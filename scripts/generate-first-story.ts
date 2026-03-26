@@ -75,7 +75,7 @@ async function generateFirstStory() {
       model: "dall-e-3",
       prompt:
         prompts[i] +
-        " Watercolor children book illustration, Studio Ghibli style, warm colors, no text.",
+        " Watercolor children book illustration, Studio Ghibli style, warm colors, no text, soft color wash background in deep forest greens, NO white background, atmospheric depth.",
       size: "1024x1024",
       quality: "hd",
       style: "vivid",
