@@ -255,6 +255,32 @@ h1, h2, h3, .navbar-title {
   50% { opacity: 0.3; }
 }
 
+/* ═══ Mobile Optimizations ═══ */
+@media (max-width: 768px) {
+  /* Reduce heavy animations on mobile for performance */
+  .nebula-bg::before,
+  .nebula-bg::after {
+    animation: none !important;
+    opacity: 0.15 !important;
+  }
+
+  /* Smaller particles */
+  .absolute.rounded-full.pointer-events-none {
+    display: none;
+  }
+
+  /* Better touch targets */
+  button, a, input {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent horizontal overflow */
+  section {
+    overflow-x: hidden;
+  }
+}
+
 /* ═══ Float Animation ═══ */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
