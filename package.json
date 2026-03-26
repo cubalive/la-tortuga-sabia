@@ -21,6 +21,7 @@
     "@tsparticles/slim": "^3.9.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "epub-gen-memory": "^1.1.2",
     "framer-motion": "^12.38.0",
     "glsl-noise": "^0.0.0",
     "gsap": "^3.14.2",
