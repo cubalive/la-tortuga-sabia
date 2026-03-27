@@ -42,3 +42,4 @@ next-env.d.ts
 .env.local
 public/downloads/la-tortuga-sabia-tomo-1-premium.pdf
 __pycache__/
+public/downloads/*-premium-v2.pdf
