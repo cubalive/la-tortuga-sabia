@@ -97,6 +97,10 @@ def clean_text(text: str) -> str:
     text = BAD_CONTROL_CHARS.sub("", text)
     text = MULTISPACE.sub(" ", text)
     text = re.sub(r" ?\n ?", "\n", text)
+    # FIX: Replace ALL word-internal hyphens with non-breaking hyphen (U+2011)
+    # WeasyPrint inserts ￾ when it breaks lines at regular hyphens
+    NB_HYPHEN = '\u2011'
+    text = re.sub(r'(\w)-(\w)', lambda m: m.group(1) + NB_HYPHEN + m.group(2), text)
     return text.strip()
 
 
@@ -261,10 +265,10 @@ body {{ -weasy-hyphens: none; }}
 .hero-title {{ font-family: {FONT_STACK_DISPLAY}; font-size: 28pt; font-weight: 700; line-height: 1.12; margin: 0 0 8px; color: #fff9ea; text-shadow: 0 2px 12px rgba(0,0,0,.55); }}
 .hero-subtitle {{ font-size: 16pt; line-height: 1.2; color: #efe5c9; text-shadow: 0 1px 8px rgba(0,0,0,.48); }}
 
-.panel-page {{ padding: 0.85in 0.9in 0.95in; background: #fbf8f1; }}
-.kicker {{ font-size: 11pt; letter-spacing: .08em; text-transform: uppercase; color: #9a7c52; margin-bottom: 16px; }}
-.narrative-text {{ font-size: 14pt; line-height: 2.02; color: #2f261f; hyphens: none; text-align: left; }}
-.narrative-text p {{ margin: 0 0 16pt; }}
+.panel-page {{ padding: 0.9in 0.95in 0.85in; background: #fbf8f1; }}
+.kicker {{ font-size: 10pt; letter-spacing: .1em; text-transform: uppercase; color: #a08a62; margin-bottom: 20px; }}
+.narrative-text {{ font-size: 14.5pt; line-height: 2.1; color: #2f261f; hyphens: none; text-align: left; }}
+.narrative-text p {{ margin: 0 0 18pt; }}
 
 .image-led-grid {{ display: grid; grid-template-columns: 1.1fr .9fr; gap: 0.45in; align-items: center; height: 100%; }}
 .image-led-art {{ width: 100%; max-height: 8.2in; object-fit: cover; border-radius: 18px; }}
@@ -275,16 +279,16 @@ body {{ -weasy-hyphens: none; }}
 .resolution-art {{ width: 63%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
 .resolution-text {{ width: 80%; text-align: center; font-size: 15pt; line-height: 1.8; color: #2f261f; }}
 
-.quelina-page {{ padding: 0.85in; background: linear-gradient(180deg, #f7f1e4, #fbf8f1); }}
-.quelina-shell {{ height: 100%; border: 1.5px solid rgba(165,127,67,.30); border-radius: 22px; padding: 0.55in; background: rgba(255,255,255,.60); display: grid; grid-template-rows: auto 1fr auto; gap: 18px; }}
+.quelina-page {{ padding: 0.75in 0.85in; background: linear-gradient(180deg, #f5efe0, #faf7f0); }}
+.quelina-shell {{ height: 100%; border: 2px solid rgba(139,102,52,.35); border-radius: 24px; padding: 0.5in 0.55in; background: linear-gradient(135deg, rgba(255,252,240,.75), rgba(255,255,255,.55)); display: grid; grid-template-rows: auto 1fr auto; gap: 22px; box-shadow: 0 4px 24px rgba(139,102,52,.08); }}
 .quelina-head {{ text-align: center; }}
-.quelina-title {{ font-size: 21pt; font-weight: 700; color: #8b6634; margin-bottom: 10px; }}
-.quelina-divider {{ width: 90px; height: 2px; margin: 0 auto; background: rgba(165,127,67,.55); }}
-.quelina-body {{ display: grid; grid-template-columns: 2.9in 1fr; gap: 0.45in; align-items: center; }}
-.quelina-portrait {{ width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
-.quelina-copy {{ font-size: 14.5pt; line-height: 1.75; color: #34291f; }}
+.quelina-title {{ font-size: 24pt; font-weight: 700; color: #7a5828; margin-bottom: 12px; letter-spacing: 0.02em; }}
+.quelina-divider {{ width: 100px; height: 2px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(139,102,52,.6), transparent); }}
+.quelina-body {{ display: grid; grid-template-columns: 3in 1fr; gap: 0.45in; align-items: center; }}
+.quelina-portrait {{ width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; box-shadow: 0 0 20px rgba(139,102,52,.12); }}
+.quelina-copy {{ font-size: 15pt; line-height: 1.8; color: #34291f; font-style: italic; }}
 .quelina-copy p {{ margin: 0 0 14pt; }}
-.quelina-moraleja {{ text-align: center; font-size: 18pt; line-height: 1.4; font-weight: 700; color: #8b6634; }}
+.quelina-moraleja {{ text-align: center; font-size: 20pt; line-height: 1.4; font-weight: 700; color: #7a5828; padding-top: 8px; border-top: 1.5px solid rgba(139,102,52,.25); }}
 
 .final-page {{ background: #f8f4eb; display: flex; align-items: center; justify-content: center; padding: 1.2in; text-align: center; }}
 .final-shell {{ max-width: 6.4in; }}
