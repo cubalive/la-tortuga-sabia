@@ -39,20 +39,26 @@ STYLE = """
 *, *::before, *::after { box-sizing: border-box; }
 body { font: 14.5pt/1.85 Georgia, serif; color: #2E1A08; orphans: 3; widows: 3; }
 
-/* ═══ HERO OPENING ═══ */
+/* ═══ HERO OPENING — SAFE TEXT ZONE ═══ */
 .hero { page: full; page-break-after: always; width: 8.5in; height: 11in;
   position: relative; overflow: hidden; }
 .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero .dim { position: absolute; inset: 0;
-  background: linear-gradient(0deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.05) 55%); }
+  background: linear-gradient(0deg,
+    rgba(5,13,18,0.88) 0%,
+    rgba(5,13,18,0.75) 25%,
+    rgba(0,0,0,0.25) 55%,
+    transparent 100%); }
 .hero .info { position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 0.4in 0.75in 0.55in; z-index: 1; }
-.hero .n { font: bold 54pt Georgia; color: rgba(201,136,42,0.5); margin: 0; }
-.hero .s { width: 2.5in; height: 2pt; margin: 2pt 0 8pt;
+  padding: 0.5in 0.8in 0.6in; z-index: 1; }
+.hero .n { font: bold 48pt Georgia; color: #C9882A; margin: 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
+.hero .s { width: 2.5in; height: 2pt; margin: 4pt 0 10pt;
   background: linear-gradient(90deg, #C9882A, transparent); }
-.hero h2 { font: bold 28pt/1.2 Georgia; color: #FEFAE0; margin: 0 0 3pt;
-  text-shadow: 1px 2px 5px rgba(0,0,0,0.4); }
-.hero .ch { font: italic 15pt Georgia; color: #C9882A; margin: 0; }
+.hero h2 { font: bold 28pt/1.2 Georgia; color: #FEFAE0; margin: 0 0 5pt;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 3px 10px rgba(0,0,0,0.4); }
+.hero .ch { font: italic 15pt Georgia; color: #FEFAE0; margin: 0;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
 
 /* ═══ NARRATIVE LIGHT TEXT ═══ */
 .nar { font-size: 14.5pt; line-height: 1.85; text-align: justify; hyphens: auto; }
@@ -191,10 +197,10 @@ def build(tomo_num):
   {f'<img src="{cover}"/>' if cover else ''}
   <div class="dim"></div>
   <div class="info">
-    <p class="n" style="font-size:38pt;color:#C9882A;">La Tortuga Sabia</p>
+    <p class="n" style="font-size:42pt;">La Tortuga Sabia</p>
     <div class="s" style="width:3in;"></div>
     <h2 style="font-size:22pt;">Tomo {tomo_num} — {title}</h2>
-    <p class="ch" style="color:rgba(254,250,224,0.6);font-size:11pt;">{subtitle}</p>
+    <p class="ch" style="font-size:11pt;">{subtitle}</p>
   </div>
 </div>
 
