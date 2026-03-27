@@ -34,13 +34,20 @@ def clean(text):
     """Strip ALL corrupt characters, bad hyphens, encoding artifacts."""
     if not text:
         return ""
-    # Remove known bad chars
-    for c in ['\ufffe', '\uffff', '\ufeff', '\u00ad', '\u200b', '\u200c',
-              '\u200d', '\u2028', '\u2029', '￾', '‐', '\u2010', '\u2011']:
-        text = text.replace(c, '')
-    text = text.replace('–', '—')
-    # Strip non-printable except whitespace
-    return ''.join(c for c in text if c in '\n\t\r ' or unicodedata.category(c)[0] != 'C')
+    # Remove ALL known problematic Unicode ranges
+    bad = set('\ufffe\uffff\ufeff\u00ad\u200b\u200c\u200d\u2028\u2029\u2010\u2011\ufffd')
+    text = ''.join(c for c in text if c not in bad)
+    # Remove replacement character variants
+    text = text.replace('￾', '').replace('�', '')
+    # Normalize dashes
+    text = text.replace('–', '—').replace('‐', '-')
+    # Remove soft hyphens and zero-width chars
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+    # Clean up double spaces
+    text = re.sub(r'  +', ' ', text)
+    # Remove orphaned quotes at line boundaries
+    text = text.replace("''", "'").replace('""', '"')
+    return text.strip()
 
 
 def paragraphs(text):
@@ -55,8 +62,8 @@ def paragraphs(text):
     return [p for p in ps if p.strip()]
 
 
-def chunks(paras, limit=90):
-    """Group paragraphs into page-sized chunks."""
+def chunks(paras, limit=80):
+    """Group paragraphs into page-sized chunks (80 words ideal)."""
     result, cur, words = [], [], 0
     for p in paras:
         pw = len(p.split())
@@ -157,15 +164,24 @@ def tmpl_emotional_pause(img_uri, quote=""):
 
 
 def tmpl_quelina(img_uri, message, moraleja):
+    """Quelina Signature — premium, iconic, warm. Not a box of text."""
     img = f'<div class="quel-portrait"><img src="{img_uri}"/></div>' if img_uri else ""
+    # Keep message SHORT — max 2 sentences for concentrated wisdom
+    msg = clean(message)
+    if len(msg) > 200:
+        # Truncate to last sentence within 200 chars
+        cut = msg[:200].rfind('.')
+        if cut > 50:
+            msg = msg[:cut+1]
+    moral = clean(moraleja)
     return f"""<div class="quelina">
   {img}
   <div class="quel-panel">
     <p class="quel-title">El Momento de Quelina</p>
     <div class="quel-sep"></div>
-    <p class="quel-msg">{clean(message)}</p>
+    <p class="quel-msg">{msg}</p>
     <div class="quel-sep"></div>
-    <p class="quel-moral">«{clean(moraleja)}»</p>
+    <p class="quel-moral">« {moral} »</p>
   </div>
 </div>"""
 
@@ -212,11 +228,12 @@ body { font: 13.5pt/2 Georgia, 'Times New Roman', serif; color: #2a1a08; }
 .hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero-grad { position: absolute; inset: 0;
   background: linear-gradient(0deg,
-    rgba(8,12,18, 0.94) 0%,
-    rgba(8,12,18, 0.78) 18%,
-    rgba(8,12,18, 0.45) 38%,
-    rgba(0,0,0, 0.12) 60%,
-    transparent 85%); }
+    rgba(6,10,16, 0.92) 0%,
+    rgba(6,10,16, 0.72) 20%,
+    rgba(6,10,16, 0.38) 40%,
+    rgba(6,10,16, 0.15) 58%,
+    rgba(0,0,0, 0.05) 72%,
+    transparent 100%); }
 .hero-text { position: absolute; bottom: 0; left: 0; right: 0;
   padding: 0.5in 0.85in 0.7in; z-index: 1; }
 .hero-pre { font: bold 14pt Georgia; color: #c9882a; letter-spacing: 3pt;
@@ -255,11 +272,11 @@ body { font: 13.5pt/2 Georgia, 'Times New Roman', serif; color: #2a1a08; }
 .trans p { font: italic 24pt Georgia; color: #c9882a; }
 .trans .orn { font-size: 14pt; color: #e8b84b; margin-top: 10pt; }
 
-/* ═══ NARRATIVE — BREATHABLE ═══ */
-.narrative { font-size: 13.5pt; line-height: 2; text-align: left;
+/* ═══ NARRATIVE — WARM & BREATHABLE ═══ */
+.narrative { font-size: 14pt; line-height: 2.05; text-align: left;
   hyphens: none; word-break: normal; overflow-wrap: break-word;
-  orphans: 3; widows: 3; }
-.narrative p { margin-bottom: 13pt; text-indent: 18pt; }
+  orphans: 3; widows: 3; color: #2a1a08; }
+.narrative p { margin-bottom: 16pt; text-indent: 20pt; }
 .narrative p:first-of-type { text-indent: 0; }
 
 /* ═══ IMAGE CENTER ═══ */
@@ -274,21 +291,22 @@ body { font: 13.5pt/2 Georgia, 'Times New Roman', serif; color: #2a1a08; }
 .pause-quote { font: italic 15pt/1.5 Georgia; color: #1b3a2d;
   max-width: 4.5in; margin: 0 auto; }
 
-/* ═══ QUELINA SIGNATURE ═══ */
-.quelina { page-break-before: always; padding-top: 0.2in; }
-.quel-portrait { text-align: center; margin-bottom: 14pt; }
-.quel-portrait img { width: 2.6in; height: 2.6in; object-fit: cover;
-  border-radius: 50%; box-shadow: 0 0 20px rgba(201,136,42,0.18); }
-.quel-panel { background: #fffce8; border: 2pt solid #c9882a;
-  border-radius: 12pt; padding: 18pt 22pt; }
-.quel-title { font: bold italic 16pt Georgia; color: #c9882a;
-  text-align: center; margin-bottom: 6pt; }
-.quel-sep { width: 55%; height: 1pt; margin: 6pt auto;
-  background: linear-gradient(90deg, transparent, #e8b84b, transparent); }
-.quel-msg { font: italic 12.5pt/1.7 Georgia; color: #3d2510;
-  text-align: center; margin: 8pt 0; }
-.quel-moral { font: bold italic 15pt/1.3 Georgia; color: #c9882a;
-  text-align: center; margin-top: 8pt; }
+/* ═══ QUELINA SIGNATURE — ICONIC ═══ */
+.quelina { page-break-before: always; padding-top: 0.6in; }
+.quel-portrait { text-align: center; margin-bottom: 18pt; }
+.quel-portrait img { width: 3in; height: 3in; object-fit: cover;
+  border-radius: 50%; box-shadow: 0 0 30px rgba(201,136,42,0.22); }
+.quel-panel { background: linear-gradient(135deg, #fffce8, #fff8d4);
+  border: 2.5pt solid #c9882a; border-radius: 14pt;
+  padding: 24pt 28pt; position: relative; }
+.quel-title { font: bold italic 18pt Georgia; color: #c9882a;
+  text-align: center; margin-bottom: 8pt; letter-spacing: 0.5pt; }
+.quel-sep { width: 50%; height: 1.5pt; margin: 8pt auto;
+  background: linear-gradient(90deg, transparent, #d4a740, transparent); }
+.quel-msg { font: italic 13.5pt/1.75 Georgia; color: #3d2510;
+  text-align: center; margin: 12pt 0; }
+.quel-moral { font: bold italic 18pt/1.3 Georgia; color: #c9882a;
+  text-align: center; margin-top: 14pt; letter-spacing: 0.3pt; }
 
 /* ═══ BACK MATTER ═══ */
 .back { page-break-before: always; text-align: center; padding-top: 2.2in; }
@@ -334,32 +352,28 @@ def build_book(tomo_num, stories):
         i_reso = b64(find(tomo_num, n, "resolucion"))
         i_quel = b64(find(tomo_num, n, "quelina"))
 
-        # Text
+        # Text — 80 words per page for breathing
         paras = paragraphs(s.get("historia", ""))
-        text_chunks = chunks(paras, limit=90)
+        text_chunks = chunks(paras, limit=80)
 
         # ── HERO OPENING ──
         sections.append(tmpl_hero_opening(
             n, s.get("titulo", ""), s.get("personaje", ""), i_hero))
 
-        # ── TEXT PAGES ──
+        # ── TEXT PAGES with image-led at conflict point ──
         for ci, chunk in enumerate(text_chunks):
             if ci == 1 and i_mid and prev_layout != "image_led":
-                # IMAGE-LED at conflict point
                 sections.append(tmpl_image_led(chunk, i_mid))
+                prev_layout = "image_led"
+            elif ci == len(text_chunks) - 1 and i_reso and len(text_chunks) > 2:
+                # Last text chunk: pair with resolution image for flow
+                sections.append(tmpl_image_led(chunk, i_reso))
                 prev_layout = "image_led"
             else:
                 sections.append(tmpl_narrative(chunk))
                 prev_layout = "narrative"
 
-        # ── EMOTIONAL PAUSE (for intense stories) ──
-        intense = any(w in s.get("historia", "").lower()
-                      for w in ["miedo", "llorar", "solo", "triste", "oscur", "perdió"])
-        if intense and i_reso:
-            quote = s.get("moraleja", "")
-            sections.append(tmpl_emotional_pause(i_reso, quote))
-
-        # ── QUELINA SIGNATURE ──
+        # ── QUELINA SIGNATURE (directly after text, no dead page between) ──
         qt = s.get("quelina_momento", "").strip()
         qm = s.get("moraleja", "").strip()
         if qt or qm:
