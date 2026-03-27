@@ -31,19 +31,21 @@ def find(tomo, num, kind):
 
 
 def clean(text):
-    """Strip ALL corrupt characters, bad hyphens, encoding artifacts."""
+    """Normalize ALL typography for clean PDF export. No special chars that fonts might miss."""
     if not text:
         return ""
-    # Remove ALL known problematic Unicode ranges
+    # Remove known bad Unicode
     bad = set('\ufffe\uffff\ufeff\u00ad\u200b\u200c\u200d\u2028\u2029\u2010\u2011\ufffd')
     text = ''.join(c for c in text if c not in bad)
-    # Remove replacement character variants
     text = text.replace('￾', '').replace('�', '')
-    # Normalize dashes
-    text = text.replace('–', '—').replace('‐', '-')
-    # Remove soft hyphens and zero-width chars
+    # Normalize ALL fancy typography to basic ASCII equivalents
+    text = text.replace('\u2014', ' -- ').replace('\u2013', ' - ')
+    text = text.replace('\u2018', "'").replace('\u2019', "'")
+    text = text.replace('\u201c', '"').replace('\u201d', '"')
+    text = text.replace('\u2026', '...').replace('\u00ab', '"').replace('\u00bb', '"')
+    text = text.replace('—', ' -- ').replace('–', ' - ').replace('‐', '-')
+    # Remove control chars
     text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
-    # Clean up double spaces
     text = re.sub(r'  +', ' ', text)
     # Remove orphaned quotes at line boundaries
     text = text.replace("''", "'").replace('""', '"')
@@ -222,17 +224,18 @@ CSS_EDITORIAL = """
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font: 13.5pt/2 Georgia, 'Times New Roman', serif; color: #2a1a08; }
 
-/* ═══ HERO OPENING — CINEMATIC, CLEAN ═══ */
+/* ═══ HERO OPENING — CINEMATIC, NO ARTIFACTS ═══ */
 .hero { page: hero; page-break-after: always;
   width: 8.5in; height: 11in; position: relative; overflow: hidden; }
-.hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  image-rendering: auto; }
 .hero-grad { position: absolute; inset: 0;
   background: linear-gradient(0deg,
-    rgba(6,10,16, 0.92) 0%,
-    rgba(6,10,16, 0.72) 20%,
-    rgba(6,10,16, 0.38) 40%,
-    rgba(6,10,16, 0.15) 58%,
-    rgba(0,0,0, 0.05) 72%,
+    rgba(5,8,14, 0.95) 0%,
+    rgba(5,8,14, 0.80) 15%,
+    rgba(5,8,14, 0.55) 30%,
+    rgba(5,8,14, 0.30) 45%,
+    rgba(0,0,0, 0.10) 65%,
     transparent 100%); }
 .hero-text { position: absolute; bottom: 0; left: 0; right: 0;
   padding: 0.5in 0.85in 0.7in; z-index: 1; }
@@ -291,22 +294,24 @@ body { font: 13.5pt/2 Georgia, 'Times New Roman', serif; color: #2a1a08; }
 .pause-quote { font: italic 15pt/1.5 Georgia; color: #1b3a2d;
   max-width: 4.5in; margin: 0 auto; }
 
-/* ═══ QUELINA SIGNATURE — ICONIC ═══ */
-.quelina { page-break-before: always; padding-top: 0.6in; }
-.quel-portrait { text-align: center; margin-bottom: 18pt; }
-.quel-portrait img { width: 3in; height: 3in; object-fit: cover;
-  border-radius: 50%; box-shadow: 0 0 30px rgba(201,136,42,0.22); }
-.quel-panel { background: linear-gradient(135deg, #fffce8, #fff8d4);
-  border: 2.5pt solid #c9882a; border-radius: 14pt;
-  padding: 24pt 28pt; position: relative; }
-.quel-title { font: bold italic 18pt Georgia; color: #c9882a;
-  text-align: center; margin-bottom: 8pt; letter-spacing: 0.5pt; }
-.quel-sep { width: 50%; height: 1.5pt; margin: 8pt auto;
-  background: linear-gradient(90deg, transparent, #d4a740, transparent); }
-.quel-msg { font: italic 13.5pt/1.75 Georgia; color: #3d2510;
-  text-align: center; margin: 12pt 0; }
-.quel-moral { font: bold italic 18pt/1.3 Georgia; color: #c9882a;
-  text-align: center; margin-top: 14pt; letter-spacing: 0.3pt; }
+/* ═══ QUELINA SIGNATURE — MEMORABLE & WARM ═══ */
+.quelina { page-break-before: always; padding-top: 0.5in; }
+.quel-portrait { text-align: center; margin-bottom: 20pt; }
+.quel-portrait img { width: 3.2in; height: 3.2in; object-fit: cover;
+  border-radius: 50%; box-shadow: 0 0 40px rgba(201,136,42,0.25),
+  0 0 80px rgba(201,136,42,0.08); }
+.quel-panel { background: linear-gradient(180deg, #fffdf0 0%, #fff6d0 100%);
+  border: 3pt solid #c9882a; border-radius: 16pt;
+  padding: 28pt 32pt; position: relative;
+  box-shadow: 0 4pt 20pt rgba(201,136,42,0.08); }
+.quel-title { font: bold italic 20pt Georgia; color: #b07820;
+  text-align: center; margin-bottom: 10pt; letter-spacing: 1pt; }
+.quel-sep { width: 45%; height: 2pt; margin: 10pt auto;
+  background: linear-gradient(90deg, transparent, #c9882a, transparent); }
+.quel-msg { font: italic 14pt/1.8 Georgia; color: #3d2510;
+  text-align: center; margin: 14pt 0; }
+.quel-moral { font: bold italic 20pt/1.25 Georgia; color: #a06a18;
+  text-align: center; margin-top: 16pt; letter-spacing: 0.5pt; }
 
 /* ═══ BACK MATTER ═══ */
 .back { page-break-before: always; text-align: center; padding-top: 2.2in; }
