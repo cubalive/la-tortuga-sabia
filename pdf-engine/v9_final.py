@@ -39,30 +39,32 @@ STYLE = """
 *, *::before, *::after { box-sizing: border-box; }
 body { font: 14.5pt/1.85 Georgia, serif; color: #2E1A08; orphans: 3; widows: 3; }
 
-/* ═══ HERO OPENING — SAFE TEXT ZONE ═══ */
+/* ═══ HERO OPENING — CLEAN CINEMATIC ═══ */
 .hero { page: full; page-break-after: always; width: 8.5in; height: 11in;
   position: relative; overflow: hidden; }
 .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero .dim { position: absolute; inset: 0;
   background: linear-gradient(0deg,
-    rgba(5,13,18,0.88) 0%,
-    rgba(5,13,18,0.75) 25%,
-    rgba(0,0,0,0.25) 55%,
+    rgba(5,10,15,0.92) 0%,
+    rgba(5,10,15,0.7) 22%,
+    rgba(5,10,15,0.35) 45%,
+    rgba(0,0,0,0.08) 70%,
     transparent 100%); }
 .hero .info { position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 0.5in 0.8in 0.6in; z-index: 1; }
-.hero .n { font: bold 48pt Georgia; color: #C9882A; margin: 0;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
-.hero .s { width: 2.5in; height: 2pt; margin: 4pt 0 10pt;
-  background: linear-gradient(90deg, #C9882A, transparent); }
-.hero h2 { font: bold 28pt/1.2 Georgia; color: #FEFAE0; margin: 0 0 5pt;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 3px 10px rgba(0,0,0,0.4); }
-.hero .ch { font: italic 15pt Georgia; color: #FEFAE0; margin: 0;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+  padding: 0.55in 0.8in 0.65in; z-index: 1; }
+.hero .n { font: bold 36pt Georgia; color: rgba(201,136,42,0.7); margin: 0 0 2pt;
+  letter-spacing: 2pt; }
+.hero .s { width: 2in; height: 1.5pt; margin: 0 0 10pt;
+  background: rgba(201,136,42,0.5); }
+.hero h2 { font: bold 32pt/1.15 Georgia; color: #FEFAE0; margin: 0 0 8pt;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.7); letter-spacing: 0.5pt; }
+.hero .ch { font: italic 16pt Georgia; color: #E8B84B; margin: 0;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6); letter-spacing: 0.5pt; }
 
 /* ═══ NARRATIVE LIGHT TEXT ═══ */
-.nar { font-size: 14.5pt; line-height: 1.85; text-align: justify; hyphens: none; }
-.nar p { margin: 0 0 11pt; text-indent: 20pt; }
+.nar { font-size: 13.5pt; line-height: 1.95; text-align: left; hyphens: none;
+  word-break: normal; overflow-wrap: break-word; }
+.nar p { margin: 0 0 14pt; text-indent: 20pt; }
 .nar p:first-of-type { text-indent: 0; }
 .nar-orn { text-align: center; color: #C9882A; font-size: 9pt;
   margin: 0 0 14pt; letter-spacing: 8pt; }
@@ -130,8 +132,28 @@ body { font: 14.5pt/1.85 Georgia, serif; color: #2E1A08; orphans: 3; widows: 3; 
 """
 
 
+def sanitize(text):
+    """Remove corrupt characters, bad hyphens, and encoding artifacts."""
+    import unicodedata
+    # Remove replacement chars, soft hyphens, zero-width chars
+    bad = ['\ufffe', '\uffff', '\ufffe', '\ufeff', '\u00ad', '\u200b', '\u200c', '\u200d',
+           '\u2028', '\u2029', '\u202a', '\u202b', '\u202c', '\u202d', '\u202e',
+           '￾', '‐']  # explicit bad chars seen in output
+    for c in bad:
+        text = text.replace(c, '')
+    # Replace en-dash/em-dash with standard
+    text = text.replace('–', '—').replace('\u2010', '-').replace('\u2011', '-')
+    # Remove any remaining non-printable chars except newlines/spaces
+    cleaned = []
+    for c in text:
+        if c in ('\n', '\t') or (unicodedata.category(c) not in ('Cc', 'Cf', 'Co', 'Cs') or c == ' '):
+            cleaned.append(c)
+    return ''.join(cleaned)
+
+
 def split_paragraphs(text):
     """Split story text into clean paragraphs."""
+    text = sanitize(text)
     paras = [p.strip() for p in text.split("\n\n") if p.strip()]
     if len(paras) < 3:
         # Split by sentences if too few paragraphs
@@ -146,7 +168,7 @@ def split_paragraphs(text):
     return [p for p in paras if p.strip()]
 
 
-def chunk_text(paras, max_words=110):
+def chunk_text(paras, max_words=90):
     """Split paragraphs into page-sized chunks (80-120 words ideal)."""
     chunks = []
     current = []
@@ -236,7 +258,7 @@ un momento a escuchar.<div class="sig">— Quelina</div></div>
 
         # Split text
         paras = split_paragraphs(s.get("historia", ""))
-        chunks = chunk_text(paras, max_words=110)
+        chunks = chunk_text(paras, max_words=90)
 
         # ═══ PAGE 1: HERO OPENING (minimal overlay) ═══
         h += f"""
@@ -245,8 +267,8 @@ un momento a escuchar.<div class="sig">— Quelina</div></div>
   <div class="dim"></div>
   <div class="info">
     <p class="n">{n}</p><div class="s"></div>
-    <h2>{s.get("titulo","")}</h2>
-    <p class="ch">{s.get("personaje","")}</p>
+    <h2>{sanitize(s.get("titulo",""))}</h2>
+    <p class="ch">{sanitize(s.get("personaje",""))}</p>
   </div>
 </div>
 """
