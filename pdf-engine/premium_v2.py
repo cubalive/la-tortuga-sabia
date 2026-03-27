@@ -41,7 +41,7 @@ T_PANEL_TITLE = 30      # Quelina panel title
 T_PANEL_MSG = 24        # Quelina panel message
 T_PANEL_MORAL = 28      # Moraleja — prominent
 T_PAGE_NUM = 16         # Page number
-WORDS_PER_PAGE = 120    # Balanced: big text + filled page
+WORDS_PER_PAGE = 150    # Fills ~75% of text area at 28pt body
 
 # Fonts
 FONT_TITLE = "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf"
@@ -349,56 +349,54 @@ def compose_cover(tomo_num, tomo_title, subtitle, cover_img_path=None):
 
 
 def compose_story_title_page(story, story_img_path=None):
-    """Compose story title page with number, title, and small image."""
+    """Compose story title page — HERO layout, no overlaps."""
     scene = detect_scene(story)
     page = create_paper_bg(PAGE_W, PAGE_H, scene, seed=story.get("numero", 1))
     draw = ImageDraw.Draw(page)
     num = story.get("numero", 0)
 
-    # Big watermark number — subtle and large
-    wm_font = get_font(FONT_TITLE, 160)
-    bbox = draw.textbbox((0, 0), str(num), font=wm_font)
-    tw = bbox[2] - bbox[0]
-    draw.text(((PAGE_W - tw) // 2, PAGE_H // 5 - 80), str(num), fill=(*C_GREEN_DEEP, 12), font=wm_font)
-
-    # Actual number — prominent
-    num_font = get_font(FONT_TITLE, T_CHAPTER_NUM)
-    draw_centered_text(draw, str(num), PAGE_H // 5, PAGE_W, num_font, C_GREEN_DEEP)
-
-    # Gold separator with diamond
-    y_sep = PAGE_H // 4 + 50
-    draw.line([(PAGE_W * 3 // 10, y_sep), (PAGE_W * 7 // 10, y_sep)], fill=C_GOLD, width=2)
-    # Diamond
-    cx = PAGE_W // 2
-    for dx, dy in [(0, -6), (6, 0), (0, 6), (-6, 0)]:
-        draw.polygon([(cx, y_sep - 6), (cx + 6, y_sep), (cx, y_sep + 6), (cx - 6, y_sep)], fill=C_GOLD)
-
-    # Title — LARGE editorial
-    title = story.get("titulo", "")
-    title_font = get_font(FONT_TITLE, T_CHAPTER_TITLE)
-    draw_centered_text(draw, title, y_sep + 30, PAGE_W, title_font, C_GREEN_DEEP)
-
-    # Character — golden prominent
-    char_font = get_font(FONT_TITLE_IT, T_CHAPTER_CHAR)
-    draw_centered_text(draw, story.get("personaje", ""), y_sep + 85, PAGE_W, char_font, C_GOLD)
-
-    # Situation
-    sit_font = get_font(FONT_BODY_IT, T_CHAPTER_SIT)
-    draw_centered_text(draw, story.get("situacion", ""), y_sep + 100, PAGE_W, sit_font, C_BROWN)
-
-    # Story image with organic border — HERO IMAGE
+    # Story image FIRST — large hero at top (60% of page width)
+    img_bottom = MARGIN + 20  # default if no image
     if story_img_path and os.path.exists(story_img_path):
         try:
             img = Image.open(story_img_path).convert("RGB")
-            img_size = int(PAGE_W * 0.52)
+            img_size = int(PAGE_W * 0.58)
             img = img.resize((img_size, img_size), Image.LANCZOS)
-            # Apply torn border
-            bordered = apply_torn_border(img, "rasgado", seed=num * 7)
+            bordered = apply_torn_border(img, "acuarela", seed=num * 7)
             x = (PAGE_W - img_size) // 2
-            y = y_sep + 140
-            page.paste(bordered, (x, y), bordered)
+            y_img = MARGIN + 10
+            page.paste(bordered, (x, y_img), bordered)
+            draw = ImageDraw.Draw(page)  # refresh after paste
+            img_bottom = y_img + img_size + 20
         except:
             pass
+
+    # Number — small elegant, above title (not watermark)
+    num_font = get_font(FONT_TITLE, 48)
+    y_num = img_bottom + 5
+    draw_centered_text(draw, str(num), y_num, PAGE_W, num_font, C_GREEN_DEEP)
+
+    # Gold separator with diamond
+    y_sep = y_num + 55
+    draw.line([(PAGE_W * 3 // 10, y_sep), (PAGE_W * 7 // 10, y_sep)], fill=C_GOLD, width=2)
+    cx = PAGE_W // 2
+    draw.polygon([(cx, y_sep-6), (cx+6, y_sep), (cx, y_sep+6), (cx-6, y_sep)], fill=C_GOLD)
+
+    # Title — LARGE, below separator
+    title = story.get("titulo", "")
+    title_font = get_font(FONT_TITLE, T_CHAPTER_TITLE)
+    y_title = y_sep + 18
+    draw_centered_text(draw, title, y_title, PAGE_W, title_font, C_GREEN_DEEP)
+
+    # Character — below title with clear spacing
+    char_font = get_font(FONT_TITLE_IT, T_CHAPTER_CHAR)
+    y_char = y_title + 55
+    draw_centered_text(draw, story.get("personaje", ""), y_char, PAGE_W, char_font, C_GOLD)
+
+    # Situation — below character with clear spacing
+    sit_font = get_font(FONT_BODY_IT, T_CHAPTER_SIT)
+    y_sit = y_char + 40
+    draw_centered_text(draw, story.get("situacion", ""), y_sit, PAGE_W, sit_font, C_BROWN)
 
     return page
 
