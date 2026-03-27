@@ -61,7 +61,7 @@ body { font: 14.5pt/1.85 Georgia, serif; color: #2E1A08; orphans: 3; widows: 3; 
   text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
 
 /* ═══ NARRATIVE LIGHT TEXT ═══ */
-.nar { font-size: 14.5pt; line-height: 1.85; text-align: justify; hyphens: auto; }
+.nar { font-size: 14.5pt; line-height: 1.85; text-align: justify; hyphens: none; }
 .nar p { margin: 0 0 11pt; text-indent: 20pt; }
 .nar p:first-of-type { text-indent: 0; }
 .nar-orn { text-align: center; color: #C9882A; font-size: 9pt;
