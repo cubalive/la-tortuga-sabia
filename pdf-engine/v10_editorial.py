@@ -11,12 +11,23 @@ from weasyprint import HTML, CSS
 # UTILITIES
 # ═══════════════════════════════════════════════════════════════
 
-def b64(path):
-    """Encode local image as data URI."""
+def b64(path, max_size=800):
+    """Encode local image as data URI, resized for PDF embedding."""
     if not path or not os.path.exists(path):
         return ""
-    with open(path, "rb") as f:
-        return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
+    from PIL import Image as PILImage
+    from io import BytesIO
+    try:
+        img = PILImage.open(path)
+        # Resize to max_size for reasonable PDF size
+        if img.width > max_size or img.height > max_size:
+            img.thumbnail((max_size, max_size), PILImage.LANCZOS)
+        buf = BytesIO()
+        img.save(buf, format="JPEG", quality=82, optimize=True)
+        return f"data:image/jpeg;base64,{base64.b64encode(buf.getvalue()).decode()}"
+    except:
+        with open(path, "rb") as f:
+            return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
 
 
 def find(tomo, num, kind):
@@ -31,24 +42,30 @@ def find(tomo, num, kind):
 
 
 def clean(text):
-    """Normalize ALL typography for clean PDF export. No special chars that fonts might miss."""
+    """Normalize ALL typography for clean PDF export. Zero tolerance for rendering artifacts."""
     if not text:
         return ""
     # Remove known bad Unicode
     bad = set('\ufffe\uffff\ufeff\u00ad\u200b\u200c\u200d\u2028\u2029\u2010\u2011\ufffd')
     text = ''.join(c for c in text if c not in bad)
     text = text.replace('￾', '').replace('�', '')
-    # Normalize ALL fancy typography to basic ASCII equivalents
-    text = text.replace('\u2014', ' -- ').replace('\u2013', ' - ')
-    text = text.replace('\u2018', "'").replace('\u2019', "'")
-    text = text.replace('\u201c', '"').replace('\u201d', '"')
-    text = text.replace('\u2026', '...').replace('\u00ab', '"').replace('\u00bb', '"')
-    text = text.replace('—', ' -- ').replace('–', ' - ').replace('‐', '-')
-    # Remove control chars
+    # Normalize ALL fancy typography to basic ASCII
+    replacements = {
+        '\u2014': ' -- ', '\u2013': ' - ', '\u2012': '-', '\u2010': '-', '\u2011': '-',
+        '\u2018': "'", '\u2019': "'", '\u201a': "'",
+        '\u201c': '"', '\u201d': '"', '\u201e': '"',
+        '\u2026': '...', '\u2022': '-',
+        '\u00ab': '"', '\u00bb': '"',  # « »
+        '\u2039': "'", '\u203a': "'",  # ‹ ›
+        '—': ' -- ', '–': ' - ', '‐': '-',
+        '«': '"', '»': '"',  # raw guillemets
+        '\u00a0': ' ',  # non-breaking space
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    # Remove any remaining control chars
     text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
     text = re.sub(r'  +', ' ', text)
-    # Remove orphaned quotes at line boundaries
-    text = text.replace("''", "'").replace('""', '"')
     return text.strip()
 
 
