@@ -10,12 +10,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from v11_editorial_guide import (
     Story,
-    StoryAssets,
     BuildResult,
     QAIssue,
     build_proof,
     clean_text,
-    has_blockers,
     load_stories_json,
     EDITORIAL_DIR,
     ASSETS_DIR,
@@ -28,7 +26,7 @@ from v11_editorial_guide import (
 
 STORIES_JSON = EDITORIAL_DIR / "stories.json"
 QA_REPORT_JSON = EDITORIAL_DIR / "qa_report.json"
-OUTPUT_PDF = OUTPUT_DIR / "proof_5_stories.pdf"
+OUTPUT_PDF_NAME = "proof_5_stories.pdf"
 
 COVER_IMAGE = ASSETS_DIR / "cover" / "cover.jpg"
 COVER_TITLE = "La Tortuga Sabia"
@@ -55,27 +53,30 @@ def serialize_issue(issue: QAIssue) -> Dict[str, Any]:
 def classify_issues(issues: List[QAIssue]) -> Dict[str, List[Dict[str, Any]]]:
     blockers, warnings, info = [], [], []
     for issue in issues:
-        payload = serialize_issue(issue)
-        if issue.severity == "blocker":
-            blockers.append(payload)
-        elif issue.severity == "warning":
-            warnings.append(payload)
-        else:
-            info.append(payload)
+        item = serialize_issue(issue)
+        if issue.severity == "blocker": blockers.append(item)
+        elif issue.severity == "warning": warnings.append(item)
+        else: info.append(item)
     return {"blockers": blockers, "warnings": warnings, "info": info}
 
 
-def build_qa_report(result: BuildResult, notes: List[str] | None = None) -> Dict[str, Any]:
+def build_qa_report(result: BuildResult) -> Dict[str, Any]:
     classified = classify_issues(result.qa_issues)
+    status = "fail" if classified["blockers"] else "pass"
+    notes = []
+    if classified["blockers"]:
+        notes.append("QA failed. Do not scale.")
+    else:
+        notes.append("No blockers. Visual validation still required.")
     return {
         "timestamp": now_iso(),
         "generated_file": str(result.pdf_path),
         "page_count": result.total_pages_estimate,
-        "status": "fail" if classified["blockers"] else "pass",
+        "status": status,
         "blockers": classified["blockers"],
         "warnings": classified["warnings"],
         "info": classified["info"],
-        "notes": notes or [],
+        "notes": notes,
     }
 
 
@@ -113,56 +114,45 @@ def main() -> None:
     if not STORIES_JSON.exists():
         raise FileNotFoundError(f"stories.json not found: {STORIES_JSON}")
     if not COVER_IMAGE.exists():
-        raise FileNotFoundError(f"Cover image not found: {COVER_IMAGE}")
+        raise FileNotFoundError(f"Cover not found: {COVER_IMAGE}")
 
-    print("\nLoading stories.json...")
-    stories = load_stories_json(STORIES_JSON)
-    print(f"Loaded {len(stories)} stories.")
+    print("\nLoading stories...")
+    stories: List[Story] = load_stories_json(STORIES_JSON)
+    print(f"Stories loaded: {len(stories)}")
 
     if len(stories) != 5:
-        print(f"Warning: expected 5 stories, found {len(stories)}.")
+        print(f"Warning: expected 5, found {len(stories)}")
 
-    print("\nBuilding proof PDF...")
+    # Confirm full texts
+    for s in stories:
+        wc = len(s.body.split())
+        print(f"  #{s.numero}: {s.titulo} — {wc} words")
+        if wc < 100:
+            print(f"    ⚠️ POSSIBLE TRUNCATION — only {wc} words")
+
+    print("\nBuilding PDF proof...")
     result = build_proof(
         cover_image=COVER_IMAGE,
-        cover_title=COVER_TITLE,
-        cover_subtitle=COVER_SUBTITLE,
+        cover_title=clean_text(COVER_TITLE),
+        cover_subtitle=clean_text(COVER_SUBTITLE),
         stories=stories,
-        output_name=OUTPUT_PDF.name,
-        include_final_closing=True,
+        output_name=OUTPUT_PDF_NAME,
+        include_final_closing=False,
     )
 
-    notes: List[str] = []
-
-    if not result.pdf_path.exists():
-        notes.append("PDF file was not created.")
-        report = {
-            "timestamp": now_iso(),
-            "generated_file": str(result.pdf_path),
-            "page_count": 0,
-            "status": "fail",
-            "blockers": [{"severity": "blocker", "page_hint": "document", "issue": "PDF not created"}],
-            "warnings": [], "info": [], "notes": notes,
-        }
-        write_json(QA_REPORT_JSON, report)
-        print_summary(report)
-        raise RuntimeError("PDF was not generated.")
-
-    if result.qa_issues:
-        notes.append("QA issues found. Review blockers before scaling.")
-    else:
-        notes.append("No QA issues. Visual validation still required.")
-
-    report = build_qa_report(result, notes=notes)
+    report = build_qa_report(result)
     write_json(QA_REPORT_JSON, report)
     print_summary(report)
 
+    if not result.pdf_path.exists():
+        raise RuntimeError(f"PDF not created: {result.pdf_path}")
+
     if report["status"] == "fail":
-        raise SystemExit("Proof generated but QA FAILED. Do not scale.")
+        raise SystemExit("QA FAILED. Do not scale.")
 
     print(f"Proof: {result.pdf_path}")
     print(f"QA:    {QA_REPORT_JSON}")
-    print("Visual validation mandatory before scaling.\n")
+    print("Visual review mandatory before scaling.\n")
 
 
 if __name__ == "__main__":
