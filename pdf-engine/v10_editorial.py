@@ -12,16 +12,28 @@ from weasyprint import HTML, CSS
 # ═══════════════════════════════════════════════════════════════
 
 def b64(path, max_size=800):
-    """Encode local image as data URI, resized for PDF embedding."""
+    """Encode local image as data URI, resized and center-seam-fixed for PDF embedding."""
     if not path or not os.path.exists(path):
         return ""
-    from PIL import Image as PILImage
+    from PIL import Image as PILImage, ImageFilter
     from io import BytesIO
+    import numpy as np
     try:
-        img = PILImage.open(path)
-        # Resize to max_size for reasonable PDF size
+        img = PILImage.open(path).convert("RGB")
+        # Resize
         if img.width > max_size or img.height > max_size:
             img.thumbnail((max_size, max_size), PILImage.LANCZOS)
+        # Fix center seam artifact (common in DALL-E images)
+        arr = np.array(img, dtype=np.float32)
+        w = arr.shape[1]
+        mid = w // 2
+        # Blend 6px strip around center to smooth any seam
+        for offset in range(-3, 4):
+            col = mid + offset
+            if 1 < col < w - 2:
+                weight = 0.3 + 0.7 * (abs(offset) / 3)
+                arr[:, col, :] = arr[:, col, :] * weight + (arr[:, col-1, :] + arr[:, col+1, :]) / 2 * (1 - weight)
+        img = PILImage.fromarray(arr.astype(np.uint8))
         buf = BytesIO()
         img.save(buf, format="JPEG", quality=82, optimize=True)
         return f"data:image/jpeg;base64,{base64.b64encode(buf.getvalue()).decode()}"
@@ -66,6 +78,10 @@ def clean(text):
     # Remove any remaining control chars
     text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
     text = re.sub(r'  +', ' ', text)
+    # Fix WeasyPrint hyphen rendering bug:
+    # WeasyPrint inserts ￾ when breaking lines at hyphen-minus.
+    # Wrap hyphenated compounds in nowrap spans in HTML output.
+    text = re.sub(r'(\w)-(\w)', r'\1&#8209;\2', text)  # &#8209; = non-breaking hyphen HTML entity
     return text.strip()
 
 
