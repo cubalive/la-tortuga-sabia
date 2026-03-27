@@ -14,14 +14,34 @@ from io import BytesIO
 import numpy as np
 
 # ═══════════════════════════════════════
-# CONSTANTS
+# CONSTANTS — EDITORIAL PREMIUM SCALES
 # ═══════════════════════════════════════
 DPI = 150
 PAGE_W_IN = 8.5
 PAGE_H_IN = 11.0
 PAGE_W = int(PAGE_W_IN * DPI)  # 1275
 PAGE_H = int(PAGE_H_IN * DPI)  # 1650
-MARGIN = int(0.9 * DPI)  # 135px — wider margins for premium feel
+MARGIN = int(1.0 * DPI)  # 150px — generous editorial margins
+
+# ═══ TYPOGRAPHIC SCALE (PIL pts at 150 DPI) ═══
+# At 150 DPI: PIL 30pt ≈ 20pt printed. PIL 24pt ≈ 16pt printed.
+T_COVER_TITLE = 60      # Book title on cover
+T_COVER_SUB = 32        # Cover subtitle
+T_CHAPTER_NUM = 72      # Story number (decorative)
+T_CHAPTER_TITLE = 40    # Story title
+T_CHAPTER_CHAR = 28     # Character name
+T_CHAPTER_SIT = 22      # Situation line
+T_BODY = 28             # Main body text — LARGE and readable
+T_BODY_LINE_H = 46      # Line height — generous breathing
+T_INDEX_ENTRY = 22      # Index entries
+T_INDEX_TITLE = 36      # Index page title
+T_DEDIC = 30            # Dedication text
+T_CREDITS = 16          # Credits/legal
+T_PANEL_TITLE = 30      # Quelina panel title
+T_PANEL_MSG = 24        # Quelina panel message
+T_PANEL_MORAL = 28      # Moraleja — prominent
+T_PAGE_NUM = 16         # Page number
+WORDS_PER_PAGE = 120    # Balanced: big text + filled page
 
 # Fonts
 FONT_TITLE = "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf"
@@ -150,6 +170,39 @@ def apply_torn_border(img, style="rasgado", seed=42):
 
 
 # ═══════════════════════════════════════
+# IMAGE VARIANTS (editorial reuse)
+# ═══════════════════════════════════════
+def make_soft_background(img, page_w, page_h, opacity=0.08):
+    """Create a full-page softened background from an illustration."""
+    bg = img.copy().resize((page_w, page_h), Image.LANCZOS)
+    bg = bg.filter(ImageFilter.GaussianBlur(25))
+    # Reduce to near-invisible tint
+    arr = np.array(bg, dtype=np.float32)
+    arr = arr * opacity + np.array(SCENE_BG.get("bosque", (240, 240, 235)), dtype=np.float32) * (1 - opacity)
+    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
+
+
+def make_banner_crop(img, target_w, target_h):
+    """Crop image to a wide banner shape for top-of-page use."""
+    w, h = img.size
+    # Take middle horizontal strip
+    strip_h = int(h * 0.4)
+    top = (h - strip_h) // 2
+    cropped = img.crop((0, top, w, top + strip_h))
+    return cropped.resize((target_w, target_h), Image.LANCZOS)
+
+
+def make_detail_crop(img, target_size):
+    """Crop a detail from the center of the image."""
+    w, h = img.size
+    crop_size = min(w, h) // 2
+    cx, cy = w // 2, h // 2
+    cropped = img.crop((cx - crop_size // 2, cy - crop_size // 2,
+                        cx + crop_size // 2, cy + crop_size // 2))
+    return cropped.resize((target_size, target_size), Image.LANCZOS)
+
+
+# ═══════════════════════════════════════
 # TEXT RENDERING
 # ═══════════════════════════════════════
 def draw_text_wrapped(draw, text, x, y, max_w, font, color, line_h=None):
@@ -192,42 +245,50 @@ def draw_centered_text(draw, text, y, page_w, font, color):
 # GOLDEN QUELINA PANEL
 # ═══════════════════════════════════════
 def create_quelina_panel(quelina_text, moraleja, w, scene="bosque"):
-    """Create the golden Quelina moment panel — PREMIUM sized."""
-    h = 500  # Taller panel for bigger text
-    panel = Image.new("RGB", (w, h), (255, 252, 232))
+    """Create the golden Quelina moment panel — EDITORIAL PREMIUM."""
+    h = 580  # Tall panel for generous text
+    panel = Image.new("RGB", (w, h), (255, 253, 238))
     draw = ImageDraw.Draw(panel)
 
-    # Outer border
-    draw.rounded_rectangle([(0, 0), (w-1, h-1)], radius=18, outline=C_GOLD, width=4)
-    # Inner border
-    draw.rounded_rectangle([(8, 8), (w-9, h-9)], radius=14, outline=C_GOLD_LIGHT, width=1)
+    # Outer border — thick gold
+    draw.rounded_rectangle([(0, 0), (w-1, h-1)], radius=20, outline=C_GOLD, width=5)
+    # Inner border — fine gold
+    draw.rounded_rectangle([(10, 10), (w-11, h-11)], radius=16, outline=C_GOLD_LIGHT, width=2)
 
-    # Corner sparkles
-    sparkle_font = get_font(FONT_BODY, 22)
-    draw.text((18, 12), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
-    draw.text((w - 36, 12), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
-    draw.text((18, h - 32), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
-    draw.text((w - 36, h - 32), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
+    # Corner sparkles — bigger
+    sparkle_font = get_font(FONT_BODY, 28)
+    draw.text((20, 14), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
+    draw.text((w - 44, 14), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
+    draw.text((20, h - 40), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
+    draw.text((w - 44, h - 40), "✦", fill=C_GOLD_LIGHT, font=sparkle_font)
 
-    # Title
-    title_font = get_font(FONT_TITLE_IT, 26)
-    draw_centered_text(draw, "🐢 El Momento de Quelina", 28, w, title_font, C_GOLD)
+    # Title — large
+    title_font = get_font(FONT_TITLE_IT, T_PANEL_TITLE)
+    draw_centered_text(draw, "El Momento de Quelina", 35, w, title_font, C_GOLD)
 
-    # Separator
-    draw.line([(40, 68), (w - 40, 68)], fill=C_GOLD_LIGHT, width=2)
+    # Separator — ornamental
+    sep_y = 80
+    draw.line([(50, sep_y), (w - 50, sep_y)], fill=C_GOLD_LIGHT, width=2)
+    # Center diamond
+    cx = w // 2
+    draw.polygon([(cx, sep_y-7), (cx+7, sep_y), (cx, sep_y+7), (cx-7, sep_y)], fill=C_GOLD)
 
-    # Quelina message — MUCH bigger font
+    # Quelina message — generous size
     if quelina_text:
-        msg_font = get_font(FONT_BODY_IT, 20)
-        draw_text_wrapped(draw, quelina_text, 35, 88, w - 70, msg_font, C_BROWN, line_h=32)
+        msg_font = get_font(FONT_BODY_IT, T_PANEL_MSG)
+        draw_text_wrapped(draw, quelina_text, 45, 105, w - 90, msg_font, C_BROWN, line_h=40)
 
     # Separator before moraleja
-    draw.line([(40, h - 95), (w - 40, h - 95)], fill=C_GOLD_LIGHT, width=2)
+    sep_y2 = h - 115
+    draw.line([(50, sep_y2), (w - 50, sep_y2)], fill=C_GOLD_LIGHT, width=2)
+    cx = w // 2
+    draw.polygon([(cx, sep_y2-6), (cx+6, sep_y2), (cx, sep_y2+6), (cx-6, sep_y2)], fill=C_GOLD)
 
-    # Moraleja — PROMINENT
+    # Moraleja — the MOST visible text on the page
     if moraleja:
-        moral_font = get_font(FONT_TITLE_IT, 24)
-        draw_centered_text(draw, f"✦ {moraleja}", h - 65, w, moral_font, C_GOLD)
+        moral_font = get_font(FONT_TITLE_IT, T_PANEL_MORAL)
+        # Center the moraleja with wrapping
+        draw_centered_text(draw, f"« {moraleja} »", h - 75, w, moral_font, C_GOLD)
 
     return panel
 
@@ -294,15 +355,15 @@ def compose_story_title_page(story, story_img_path=None):
     draw = ImageDraw.Draw(page)
     num = story.get("numero", 0)
 
-    # Big watermark number
-    wm_font = get_font(FONT_TITLE, 140)
+    # Big watermark number — subtle and large
+    wm_font = get_font(FONT_TITLE, 160)
     bbox = draw.textbbox((0, 0), str(num), font=wm_font)
     tw = bbox[2] - bbox[0]
-    draw.text(((PAGE_W - tw) // 2, PAGE_H // 4 - 80), str(num), fill=(*C_GREEN_DEEP, 15), font=wm_font)
+    draw.text(((PAGE_W - tw) // 2, PAGE_H // 5 - 80), str(num), fill=(*C_GREEN_DEEP, 12), font=wm_font)
 
-    # Actual number
-    num_font = get_font(FONT_TITLE, 56)
-    draw_centered_text(draw, str(num), PAGE_H // 4 - 20, PAGE_W, num_font, C_GREEN_DEEP)
+    # Actual number — prominent
+    num_font = get_font(FONT_TITLE, T_CHAPTER_NUM)
+    draw_centered_text(draw, str(num), PAGE_H // 5, PAGE_W, num_font, C_GREEN_DEEP)
 
     # Gold separator with diamond
     y_sep = PAGE_H // 4 + 50
@@ -312,24 +373,24 @@ def compose_story_title_page(story, story_img_path=None):
     for dx, dy in [(0, -6), (6, 0), (0, 6), (-6, 0)]:
         draw.polygon([(cx, y_sep - 6), (cx + 6, y_sep), (cx, y_sep + 6), (cx - 6, y_sep)], fill=C_GOLD)
 
-    # Title — BOLD and LARGE
+    # Title — LARGE editorial
     title = story.get("titulo", "")
-    title_font = get_font(FONT_TITLE, 36)  # Much bigger title
-    draw_centered_text(draw, title, y_sep + 25, PAGE_W, title_font, C_GREEN_DEEP)
+    title_font = get_font(FONT_TITLE, T_CHAPTER_TITLE)
+    draw_centered_text(draw, title, y_sep + 30, PAGE_W, title_font, C_GREEN_DEEP)
 
-    # Character — prominent
-    char_font = get_font(FONT_TITLE_IT, 24)
-    draw_centered_text(draw, story.get("personaje", ""), y_sep + 75, PAGE_W, char_font, C_GOLD)
+    # Character — golden prominent
+    char_font = get_font(FONT_TITLE_IT, T_CHAPTER_CHAR)
+    draw_centered_text(draw, story.get("personaje", ""), y_sep + 85, PAGE_W, char_font, C_GOLD)
 
     # Situation
-    sit_font = get_font(FONT_BODY_IT, 18)
+    sit_font = get_font(FONT_BODY_IT, T_CHAPTER_SIT)
     draw_centered_text(draw, story.get("situacion", ""), y_sep + 100, PAGE_W, sit_font, C_BROWN)
 
-    # Story image with organic border — LARGE and prominent
+    # Story image with organic border — HERO IMAGE
     if story_img_path and os.path.exists(story_img_path):
         try:
             img = Image.open(story_img_path).convert("RGB")
-            img_size = int(PAGE_W * 0.55)  # 55% of page width
+            img_size = int(PAGE_W * 0.52)
             img = img.resize((img_size, img_size), Image.LANCZOS)
             # Apply torn border
             bordered = apply_torn_border(img, "rasgado", seed=num * 7)
@@ -343,88 +404,99 @@ def compose_story_title_page(story, story_img_path=None):
 
 
 def compose_story_text_page(story, text_chunk, page_num, has_image=False, img_path=None, layout="A"):
-    """Compose a story text page — PREMIUM layout with large readable text."""
+    """Compose a story text page — EDITORIAL PREMIUM layout."""
     scene = detect_scene(story)
     page = create_paper_bg(PAGE_W, PAGE_H, scene, seed=page_num * 13)
     draw = ImageDraw.Draw(page)
 
-    body_font = get_font(FONT_BODY, 21)  # MUCH bigger — readable
-    body_bold = get_font(FONT_BODY_BOLD, 21)
+    body_font = get_font(FONT_BODY, T_BODY)
     text_w = PAGE_W - 2 * MARGIN
-    y = MARGIN + 30
-    line_h = 34  # Generous line height for readability
+    y = MARGIN + 40
+    line_h = T_BODY_LINE_H
 
-    # Split text into actual paragraphs
+    # Split into paragraphs
     paragraphs = text_chunk.split("\n\n") if "\n\n" in text_chunk else [text_chunk]
 
-    # Layout with image
     if has_image and img_path and os.path.exists(img_path):
         try:
             img = Image.open(img_path).convert("RGB")
-            img_w = int(PAGE_W * 0.50)  # BIGGER image — 50% width
-            img_h = img_w
-            img = img.resize((img_w, img_h), Image.LANCZOS)
 
-            border_style = ["rasgado", "acuarela", "fundido"][page_num % 3]
-            bordered = apply_torn_border(img, border_style, seed=page_num * 11)
-
-            if layout == "B":  # Image right, text flows left
-                ix = PAGE_W - MARGIN - img_w + 20
-                iy = MARGIN + 50
-                page.paste(bordered, (ix, iy), bordered)
-                narrow_w = ix - MARGIN - 25
-                for para in paragraphs:
-                    if para.strip():
-                        y = draw_text_wrapped(draw, para.strip(), MARGIN, y, narrow_w, body_font, C_BROWN, line_h=line_h)
-                        y += 12
-                if y < iy + img_h + 25:
-                    y = iy + img_h + 25
-                    # Continue remaining paragraphs below image at full width
-            elif layout == "C":  # Image center top
+            if layout == "B":
+                # IMAGE TOP CENTER — text fills below (best for readability)
+                img_w = int(PAGE_W * 0.55)
+                img_h = int(img_w * 0.75)  # Crop to landscape ratio
+                img = img.resize((img_w, img_w), Image.LANCZOS)
+                # Crop to landscape
+                img_cropped = img.crop((0, int(img_w * 0.12), img_w, int(img_w * 0.88)))
+                bordered = apply_torn_border(img_cropped, "acuarela", seed=page_num * 11)
                 ix = (PAGE_W - img_w) // 2
-                iy = MARGIN + 20
-                page.paste(bordered, (ix, iy), bordered)
-                y = iy + img_h + 30
+                page.paste(bordered, (ix, y), bordered)
+                y += img_cropped.size[1] + 35
+                # Text below at full width
                 for para in paragraphs:
                     if para.strip():
                         y = draw_text_wrapped(draw, para.strip(), MARGIN, y, text_w, body_font, C_BROWN, line_h=line_h)
-                        y += 12
-            else:  # Layout A: image floats left, text right then below
-                ix = MARGIN - 10
-                iy = MARGIN + 30
-                img_w_small = int(PAGE_W * 0.40)
-                img_small = img.resize((img_w_small, img_w_small), Image.LANCZOS)
-                bordered_small = apply_torn_border(img_small, border_style, seed=page_num * 11)
-                page.paste(bordered_small, (ix, iy), bordered_small)
-                # Text flows right of image
-                text_x = ix + img_w_small + 20
-                narrow_w = PAGE_W - MARGIN - text_x
+                        y += 18
+
+            elif layout == "C":
+                # TEXT ONLY — no image on this page (image was on title page)
+                # Use full page for generous text
                 for para in paragraphs:
                     if para.strip():
-                        y = draw_text_wrapped(draw, para.strip(), text_x, y, narrow_w, body_font, C_BROWN, line_h=line_h)
-                        y += 12
-                    if y > iy + img_w_small + 20:
-                        text_x = MARGIN
-                        narrow_w = text_w
+                        y = draw_text_wrapped(draw, para.strip(), MARGIN, y, text_w, body_font, C_BROWN, line_h=line_h)
+                        y += 18
+
+            else:
+                # Layout A: SMALL IMAGE as accent, text dominant
+                img_w = int(PAGE_W * 0.30)
+                img = img.resize((img_w, img_w), Image.LANCZOS)
+                bordered = apply_torn_border(img, "fundido", seed=page_num * 11)
+                # Place image in right margin as accent
+                ix = PAGE_W - MARGIN - img_w + 20
+                iy = MARGIN + 60
+                page.paste(bordered, (ix, iy), bordered)
+                # Text at full width (image overlaps subtly with fundido)
+                for para in paragraphs:
+                    if para.strip():
+                        y = draw_text_wrapped(draw, para.strip(), MARGIN, y, text_w, body_font, C_BROWN, line_h=line_h)
+                        y += 18
         except:
             for para in paragraphs:
                 if para.strip():
                     y = draw_text_wrapped(draw, para.strip(), MARGIN, y, text_w, body_font, C_BROWN, line_h=line_h)
-                    y += 12
+                    y += 18
     else:
-        # Text only page — with paragraph breaks
+        # TEXT ONLY PAGE — editorial with generous spacing
+        # Use softened image background if available from story
+        if img_path and os.path.exists(img_path):
+            try:
+                src = Image.open(img_path).convert("RGB")
+                soft_bg = make_soft_background(src, PAGE_W, PAGE_H, opacity=0.06)
+                page = Image.blend(page, soft_bg, 0.5)
+                draw = ImageDraw.Draw(page)
+            except:
+                pass
+
+        # Subtle top ornament
+        orn_y = y - 15
+        draw.line([(PAGE_W // 2 - 80, orn_y), (PAGE_W // 2 - 10, orn_y)], fill=C_GOLD_LIGHT, width=1)
+        draw.line([(PAGE_W // 2 + 10, orn_y), (PAGE_W // 2 + 80, orn_y)], fill=C_GOLD_LIGHT, width=1)
+        # Center diamond
+        cx = PAGE_W // 2
+        draw.polygon([(cx, orn_y-4), (cx+4, orn_y), (cx, orn_y+4), (cx-4, orn_y)], fill=C_GOLD_LIGHT)
+
         for para in paragraphs:
             if para.strip():
                 y = draw_text_wrapped(draw, para.strip(), MARGIN, y, text_w, body_font, C_BROWN, line_h=line_h)
-                y += 16  # Paragraph spacing
+                y += 22  # Generous paragraph spacing
 
-    # Page number
-    num_font = get_font(FONT_BODY_IT, 14)
+    # Page number — subtle
+    num_font = get_font(FONT_BODY_IT, T_PAGE_NUM)
     pg_str = str(page_num)
     if page_num % 2 == 1:
-        draw.text((PAGE_W - MARGIN, PAGE_H - 40), pg_str, fill=C_GOLD, font=num_font)
+        draw.text((PAGE_W - MARGIN + 20, PAGE_H - 45), pg_str, fill=C_GOLD, font=num_font)
     else:
-        draw.text((MARGIN, PAGE_H - 40), pg_str, fill=C_GOLD, font=num_font)
+        draw.text((MARGIN - 30, PAGE_H - 45), pg_str, fill=C_GOLD, font=num_font)
 
     return page
 
@@ -434,22 +506,20 @@ def compose_quelina_page(story, quelina_img_path=None, page_num=0):
     scene = detect_scene(story)
     page = create_paper_bg(PAGE_W, PAGE_H, scene, seed=page_num * 17)
 
-    # Quelina image with fundido border (top portion)
+    # Quelina image with fundido border — centered prominently
     if quelina_img_path and os.path.exists(quelina_img_path):
         try:
             img = Image.open(quelina_img_path).convert("RGB")
-            img_w = int(PAGE_W * 0.50)  # Bigger Quelina image
-            img_h = img_w
-            img = img.resize((img_w, img_h), Image.LANCZOS)
+            img_w = int(PAGE_W * 0.45)
+            img = img.resize((img_w, img_w), Image.LANCZOS)
             bordered = apply_torn_border(img, "fundido", seed=page_num * 19)
             x = (PAGE_W - img_w) // 2
-            y = MARGIN + 20
-            page.paste(bordered, (x, y), bordered)
+            page.paste(bordered, (x, MARGIN + 15), bordered)
         except:
             pass
 
-    # Golden panel (bottom portion) — BIGGER
-    panel_w = PAGE_W - 2 * MARGIN
+    # Golden panel — EDITORIAL PREMIUM (fills lower portion)
+    panel_w = PAGE_W - 2 * MARGIN + 20
     panel = create_quelina_panel(
         story.get("quelina_momento", ""),
         story.get("moraleja", ""),
@@ -457,7 +527,7 @@ def compose_quelina_page(story, quelina_img_path=None, page_num=0):
         scene
     )
     panel_x = (PAGE_W - panel_w) // 2
-    panel_y = PAGE_H - MARGIN - 520  # More space for bigger panel
+    panel_y = PAGE_H - MARGIN - 600
     page.paste(panel, (panel_x, panel_y))
 
     # Page number
@@ -474,7 +544,7 @@ def compose_quelina_page(story, quelina_img_path=None, page_num=0):
 def compose_dedication():
     page = create_paper_bg(PAGE_W, PAGE_H, "noche", seed=999)
     draw = ImageDraw.Draw(page)
-    font = get_font(FONT_TITLE_IT, 22)
+    font = get_font(FONT_TITLE_IT, T_DEDIC)
     lines = [
         "Para todos los niños que todavía",
         "creen que las tortugas pueden hablar",
@@ -482,39 +552,50 @@ def compose_dedication():
         "",
         "Y para los padres que se detienen",
         "un momento a escuchar.",
-        "",
-        "— Quelina 🐢"
     ]
-    y = PAGE_H // 3
+    y = PAGE_H // 3 - 20
     for line in lines:
         if line:
             draw_centered_text(draw, line, y, PAGE_W, font, C_GOLD)
-        y += 35
+        y += 48
+
+    # Signature — larger
+    sig_font = get_font(FONT_BODY_IT, 24)
+    draw_centered_text(draw, "— Quelina", y + 30, PAGE_W, sig_font, C_GOLD_LIGHT)
+
     return page
 
 
 def compose_credits():
     page = create_paper_bg(PAGE_W, PAGE_H, "bosque", seed=998)
     draw = ImageDraw.Draw(page)
-    font = get_font(FONT_BODY, 12)
-    lines = [
-        "© 2025 CUBALIVE",
+
+    # Position in lower third — editorial convention
+    y = PAGE_H * 0.55
+
+    pub_font = get_font(FONT_BODY_BOLD, T_CREDITS + 4)
+    draw_centered_text(draw, "© 2025 CUBALIVE", y, PAGE_W, pub_font, C_BROWN)
+    y += 35
+
+    font = get_font(FONT_BODY, T_CREDITS + 2)
+    for line in [
         "Publicado por PASSKAL LLC",
         "Las Vegas, Nevada, USA",
         "",
         "latortugasabia.com",
         "",
         "Todos los derechos reservados.",
+        "Ninguna parte de este libro puede ser reproducida",
+        "sin permiso escrito del editor.",
         "",
         "Ilustraciones generadas con DALL-E 3",
-        "Historias creadas con asistencia de IA",
+        "Historias creadas con asistencia de Claude AI",
         "",
         "Primera edición digital — 2025",
-    ]
-    y = PAGE_H // 2 - 50
-    for line in lines:
-        draw_centered_text(draw, line, y, PAGE_W, font, C_BROWN if line else C_BROWN)
-        y += 20
+    ]:
+        if line:
+            draw_centered_text(draw, line, y, PAGE_W, font, C_BROWN)
+        y += 24
     return page
 
 
@@ -522,26 +603,29 @@ def compose_index(stories):
     page = create_paper_bg(PAGE_W, PAGE_H, "bosque", seed=997)
     draw = ImageDraw.Draw(page)
 
-    title_font = get_font(FONT_TITLE, 28)
-    draw_centered_text(draw, "Índice", MARGIN, PAGE_W, title_font, C_GOLD)
+    title_font = get_font(FONT_TITLE, T_INDEX_TITLE)
+    draw_centered_text(draw, "Índice", MARGIN + 10, PAGE_W, title_font, C_GOLD)
 
-    idx_font = get_font(FONT_BODY, 12)
-    char_font = get_font(FONT_BODY_IT, 11)
-    y = MARGIN + 60
+    # Separator under title
+    draw.line([(MARGIN + 40, MARGIN + 60), (PAGE_W - MARGIN - 40, MARGIN + 60)], fill=C_GOLD_LIGHT, width=2)
+
+    idx_font = get_font(FONT_BODY, T_INDEX_ENTRY)
+    char_font = get_font(FONT_BODY_IT, T_INDEX_ENTRY - 4)
+    y = MARGIN + 85
 
     for s in stories:
-        if y > PAGE_H - MARGIN - 20:
+        if y > PAGE_H - MARGIN - 30:
             break
         num = str(s.get("numero", "")).zfill(2)
-        title = s.get("titulo", "")[:50]
-        char = (s.get("personaje", "") or "")[:30]
-        draw.text((MARGIN + 10, y), f"{num}.", fill=C_BROWN, font=idx_font)
-        draw.text((MARGIN + 40, y), title, fill=C_BROWN, font=idx_font)
+        title = s.get("titulo", "")[:45]
+        char = (s.get("personaje", "") or "")[:25]
+        draw.text((MARGIN + 10, y), f"{num}.", fill=C_GOLD, font=idx_font)
+        draw.text((MARGIN + 55, y), title, fill=C_BROWN, font=idx_font)
         # Right-align character
         bbox = draw.textbbox((0, 0), char, font=char_font)
         cw = bbox[2] - bbox[0]
-        draw.text((PAGE_W - MARGIN - cw, y), char, fill=C_GOLD, font=char_font)
-        y += 18
+        draw.text((PAGE_W - MARGIN - cw, y + 3), char, fill=C_GOLD, font=char_font)
+        y += 28  # More spacing between entries
 
     return page
 
@@ -603,7 +687,7 @@ def generate_premium_book(tomo_num, output_path):
         # Story text pages
         text = story.get("historia", "")
         words = text.split()
-        words_per_page = 130  # Fewer words per page = bigger text = more readable
+        words_per_page = WORDS_PER_PAGE
         chunks = []
         for i in range(0, len(words), words_per_page):
             chunks.append(" ".join(words[i:i + words_per_page]))
