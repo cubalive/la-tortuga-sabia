@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-03-27T11:42:47+00:00",
+  "timestamp": "2026-03-27T11:48:45+00:00",
   "generated_file": "/home/user/la-tortuga-sabia/editorial/output/proof_5_stories.pdf",
-  "page_count": 21,
+  "page_count": 22,
   "status": "pass",
   "blockers": [],
   "warnings": [],
   "info": [],
   "notes": [
-    "No QA issues returned by build_proof(). Visual validation still required."
+    "No QA issues. Visual validation still required."
   ]
 }

@@ -1,43 +1,46 @@
-"""
-LA TORTUGA SABIA — v11 Editorial Guide
-Architecture base for premium children's book PDF generation.
-WeasyPrint renderer. File-based assets (no base64). Strict QA.
-"""
 from __future__ import annotations
-import os, re, html, json
+
+import html
+import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
-from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
 from weasyprint import HTML, CSS
-from PIL import Image as PILImage
+
 
 # ============================================================
 # CONFIG
 # ============================================================
-BASE_DIR = Path("/home/user/la-tortuga-sabia")
-EDITORIAL_DIR = BASE_DIR / "editorial"
-ASSETS_DIR = EDITORIAL_DIR / "assets"
-OUT_DIR = EDITORIAL_DIR / "output"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+EDITORIAL_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = EDITORIAL_DIR.parent
+ASSETS_DIR = EDITORIAL_DIR / "assets"  # assets live inside editorial/
+OUTPUT_DIR = EDITORIAL_DIR / "output"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 PAGE_W = "8.5in"
 PAGE_H = "11in"
-FONT_SERIF = '"Liberation Serif", Georgia, serif'
-MAX_WORDS_IDEAL = 110
-MAX_WORDS_HARD = 130
-IMAGE_MAX_PX = 900  # resize images to this before render
+
+FONT_STACK_SERIF = '"Liberation Serif", Georgia, serif'
+FONT_STACK_DISPLAY = '"Liberation Serif", Georgia, serif'
+
+MAX_WORDS_NARRATIVE_IDEAL = 120
+MAX_WORDS_NARRATIVE_HARD = 130
 
 
 # ============================================================
 # DATA MODELS
 # ============================================================
+
 @dataclass
 class StoryAssets:
     hero: Optional[Path] = None
     conflict: Optional[Path] = None
     resolution: Optional[Path] = None
     quelina: Optional[Path] = None
+
 
 @dataclass
 class Story:
@@ -49,369 +52,378 @@ class Story:
     quelina_text: str
     assets: StoryAssets
 
+
 @dataclass
 class QAIssue:
-    severity: str  # "blocker", "warning", "info"
+    severity: str   # blocker | warning | info
     page_hint: str
     issue: str
+
 
 @dataclass
 class BuildResult:
     pdf_path: Path
-    page_count: int = 0
     qa_issues: List[QAIssue] = field(default_factory=list)
+    total_pages_estimate: int = 0
 
 
 # ============================================================
-# TEXT SANITIZATION
+# SANITIZATION
 # ============================================================
-BAD_CHARS = re.compile(r"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF\uFFFD]")
+
+BAD_CONTROL_CHARS = re.compile(r"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]")
+MULTISPACE = re.compile(r"[ \t]+")
+BAD_VISIBLE_CORRUPT = ["\ufffe", "\ufffd"]
+
 
 def clean_text(text: str) -> str:
     if not text:
         return ""
-    reps = {
-        "\u00ab": '"', "\u00bb": '"', "\u201c": '"', "\u201d": '"',
-        "\u201e": '"', "\u2018": "'", "\u2019": "'", "\u201a": "'",
-        "\u2014": " - ", "\u2013": " - ", "\u2012": "-",
-        "\u2026": "...", "\u2022": "-",
-        "\u00a0": " ", "\u200b": "", "\u200c": "", "\u200d": "",
-        "\u2060": "", "\ufeff": "", "\ufffe": "", "\uffff": "",
-        "---": " - ", "--": " - ",
-        "«": '"', "»": '"', "—": " - ", "–": " - ",
+
+    replacements = {
+        "\u00ab": '"', "\u00bb": '"',
+        "\u201c": '"', "\u201d": '"', "\u201e": '"',
+        "\u2018": "'", "\u2019": "'", "\u201a": "'",
+        "\u2014": "-", "\u2013": "-",
+        "\u2026": "...",
+        "\u00a0": " ",
+        "\u200b": "", "\u200c": "", "\u200d": "",
+        "\u2060": "", "\ufeff": "",
     }
-    for src, dst in reps.items():
+
+    for src, dst in replacements.items():
         text = text.replace(src, dst)
-    text = BAD_CHARS.sub("", text)
-    text = re.sub(r"  +", " ", text)
+
+    text = BAD_CONTROL_CHARS.sub("", text)
+    text = MULTISPACE.sub(" ", text)
     text = re.sub(r" ?\n ?", "\n", text)
     return text.strip()
 
-def esc(text: str) -> str:
+
+def escape(text: str) -> str:
     return html.escape(clean_text(text), quote=True)
 
-def paragraphs(text: str) -> List[str]:
-    text = clean_text(text)
-    blocks = [b.strip() for b in text.split("\n") if b.strip()]
-    if len(blocks) < 3:
-        blocks = [b.strip() for b in re.split(r"(?<=[.!?])\s+", text) if b.strip()]
-        # Regroup into ~3 chunks
-        if len(blocks) >= 6:
-            t = len(blocks) // 3
-            blocks = [" ".join(blocks[:t]), " ".join(blocks[t:t*2]), " ".join(blocks[t*2:])]
-    return blocks
 
-def wc(text: str) -> int:
+def paragraphs(text: str) -> List[str]:
+    return [p.strip() for p in clean_text(text).split("\n") if p.strip()]
+
+
+def word_count(text: str) -> int:
     return len(re.findall(r"\S+", clean_text(text)))
 
-def chunk_text(text: str, limit: int = MAX_WORDS_IDEAL) -> List[str]:
+
+def chunk_paragraphs_for_narrative(text: str, soft_limit: int = MAX_WORDS_NARRATIVE_IDEAL) -> List[str]:
     paras = paragraphs(text)
-    chunks, cur, cur_wc = [], [], 0
+    if not paras:
+        return [""]
+
+    chunks: List[str] = []
+    current: List[str] = []
+    current_words = 0
+
     for p in paras:
-        pw = wc(p)
-        if cur and cur_wc + pw > limit:
-            chunks.append("\n\n".join(cur))
-            cur, cur_wc = [p], pw
+        wc = word_count(p)
+        if current and current_words + wc > soft_limit:
+            chunks.append("\n\n".join(current))
+            current = [p]
+            current_words = wc
         else:
-            cur.append(p)
-            cur_wc += pw
-    if cur:
-        chunks.append("\n\n".join(cur))
+            current.append(p)
+            current_words += wc
+
+    if current:
+        chunks.append("\n\n".join(current))
+
     return chunks
 
 
 # ============================================================
-# ASSET PROCESSING
+# JSON / STORY LOADING
 # ============================================================
-def optimize_image(src: Path, dst: Path, max_px: int = IMAGE_MAX_PX):
-    """Resize and optimize image for PDF embedding."""
-    img = PILImage.open(src).convert("RGB")
-    if img.width > max_px or img.height > max_px:
-        img.thumbnail((max_px, max_px), PILImage.LANCZOS)
-    # Smooth center seam (DALL-E artifact)
-    import numpy as np
-    arr = np.array(img, dtype=np.float32)
-    w = arr.shape[1]
-    mid = w // 2
-    for off in range(-3, 4):
-        col = mid + off
-        if 1 < col < w - 2:
-            wt = 0.3 + 0.7 * (abs(off) / 3)
-            arr[:, col, :] = arr[:, col, :] * wt + (arr[:, col-1, :] + arr[:, col+1, :]) / 2 * (1 - wt)
-    PILImage.fromarray(arr.astype(np.uint8)).save(dst, "JPEG", quality=82, optimize=True)
 
-def prepare_assets(stories: List[Story]) -> Path:
-    """Optimize all images into a temp directory for rendering."""
-    opt_dir = OUT_DIR / "_optimized"
-    opt_dir.mkdir(exist_ok=True)
-    for s in stories:
-        for key in ["hero", "conflict", "resolution", "quelina"]:
-            src = getattr(s.assets, key)
-            if src and src.exists():
-                dst = opt_dir / f"s{s.numero:02d}_{key}.jpg"
-                if not dst.exists():
-                    optimize_image(src, dst)
-                setattr(s.assets, key, dst)
-    return opt_dir
+def resolve_project_path(relative_path: str) -> Path:
+    return (PROJECT_ROOT / relative_path).resolve()
+
+
+def story_from_payload(item: Dict) -> Story:
+    assets_payload = item.get("assets", {})
+    assets = StoryAssets(
+        hero=resolve_project_path(assets_payload["hero"]) if assets_payload.get("hero") else None,
+        conflict=resolve_project_path(assets_payload["conflict"]) if assets_payload.get("conflict") else None,
+        resolution=resolve_project_path(assets_payload["resolution"]) if assets_payload.get("resolution") else None,
+        quelina=resolve_project_path(assets_payload["quelina"]) if assets_payload.get("quelina") else None,
+    )
+
+    return Story(
+        numero=int(item["numero"]),
+        titulo=clean_text(item.get("titulo", "")),
+        personaje=clean_text(item.get("personaje", "")),
+        body=clean_text(item.get("body", "")),
+        moraleja=clean_text(item.get("moraleja", "")),
+        quelina_text=clean_text(item.get("quelina_text", "")),
+        assets=assets,
+    )
+
+
+def load_stories_json(path: Path) -> List[Story]:
+    with path.open("r", encoding="utf-8") as f:
+        raw = json.load(f)
+    if not isinstance(raw, list):
+        raise ValueError("stories.json debe contener una lista.")
+    return [story_from_payload(item) for item in raw]
 
 
 # ============================================================
 # ASSET VALIDATION
 # ============================================================
+
 def validate_asset(path: Optional[Path]) -> Optional[str]:
-    if path is None: return "missing path"
-    if not path.exists(): return f"not found: {path}"
-    if path.stat().st_size < 1000: return f"too small: {path}"
+    if path is None:
+        return "missing path"
+    if not path.exists():
+        return f"file not found: {path}"
+    if path.stat().st_size == 0:
+        return f"empty file: {path}"
     return None
 
-def validate_story(story: Story) -> List[QAIssue]:
-    issues = []
-    for key in ["hero", "conflict", "resolution", "quelina"]:
-        err = validate_asset(getattr(story.assets, key))
+
+def validate_story_assets(story: Story) -> List[QAIssue]:
+    issues: List[QAIssue] = []
+    checks = {
+        "hero": story.assets.hero,
+        "conflict": story.assets.conflict,
+        "resolution": story.assets.resolution,
+        "quelina": story.assets.quelina,
+    }
+    for name, path in checks.items():
+        err = validate_asset(path)
         if err:
-            sev = "blocker" if key in ("hero", "quelina") else "warning"
-            issues.append(QAIssue(sev, f"story {story.numero}", f"{key}: {err}"))
-    if wc(story.body) == 0:
-        issues.append(QAIssue("blocker", f"story {story.numero}", "empty body"))
-    if wc(story.quelina_text) > 80:
-        issues.append(QAIssue("warning", f"story {story.numero}", "quelina text may be too long"))
+            severity = "blocker" if name in {"hero", "quelina"} else "warning"
+            issues.append(QAIssue(severity, f"story {story.numero}", f"{name} asset error: {err}"))
     return issues
 
 
-# ============================================================
-# CSS EDITORIAL
-# ============================================================
-CSS_EDITORIAL = f"""
-@page {{ size: {PAGE_W} {PAGE_H}; margin: 0; }}
-html, body {{ margin: 0; padding: 0; font-family: {FONT_SERIF}; color: #2e241c; background: #f8f4eb; }}
-* {{ box-sizing: border-box; }}
-
-.page {{ width: {PAGE_W}; height: {PAGE_H}; position: relative; page-break-after: always; overflow: hidden; background: #f8f4eb; }}
-.full-bleed {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
-
-/* HERO */
-.hero-overlay {{ position: absolute; inset: auto 0 0 0; height: 48%;
-  background: linear-gradient(to top, rgba(10,8,6,0.94) 0%, rgba(10,8,6,0.78) 18%, rgba(10,8,6,0.42) 42%, rgba(10,8,6,0.14) 70%, transparent 100%); }}
-.hero-text {{ position: absolute; left: 7%; right: 7%; bottom: 9%; color: #fefae0; }}
-.hero-number {{ font-size: 40pt; font-weight: 700; color: #c99734; text-shadow: 0 2px 8px rgba(0,0,0,.55); margin-bottom: 8px; }}
-.hero-rule {{ width: 28%; height: 2px; background: rgba(201,151,52,.9); margin: 0 0 16px; }}
-.hero-title {{ font-size: 28pt; font-weight: 700; line-height: 1.12; color: #fff9ea; text-shadow: 0 2px 10px rgba(0,0,0,.55); margin: 0 0 8px; }}
-.hero-subtitle {{ font-size: 15pt; color: #efe5c9; text-shadow: 0 1px 6px rgba(0,0,0,.48); }}
-
-/* NARRATIVE */
-.panel {{ padding: 0.85in 0.9in 0.7in; background: #fbf8f1; }}
-.kicker {{ font-size: 10pt; letter-spacing: .08em; text-transform: uppercase; color: #9a7c52; margin-bottom: 14px; }}
-.narrative {{ font-size: 14pt; line-height: 2.02; color: #2f261f; hyphens: none; text-align: left; }}
-.narrative p {{ margin: 0 0 15pt; }}
-
-/* IMAGE-LED */
-.img-led-grid {{ display: grid; grid-template-columns: 1.1fr .9fr; gap: 0.4in; align-items: center; height: 100%; }}
-.img-led-art {{ width: 100%; max-height: 8in; object-fit: cover; border-radius: 16px; }}
-.img-led-text {{ font-size: 14pt; line-height: 1.95; color: #2f261f; }}
-.img-led-text p {{ margin: 0 0 14pt; }}
-
-/* RESOLUTION */
-.reso-stack {{ display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; gap: 20px; padding: 0.7in; }}
-.reso-art {{ width: 58%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
-.reso-text {{ width: 80%; text-align: center; font-size: 14.5pt; line-height: 1.8; color: #2f261f; }}
-
-/* QUELINA */
-.quelina-bg {{ padding: 0.8in; background: linear-gradient(180deg, #f7f1e4, #fbf8f1); }}
-.quelina-shell {{ height: 100%; border: 1.5px solid rgba(165,127,67,.30); border-radius: 20px; padding: 0.5in; background: rgba(255,255,255,.55); display: grid; grid-template-rows: auto 1fr auto; gap: 16px; }}
-.quelina-head {{ text-align: center; }}
-.quelina-head-title {{ font-size: 20pt; font-weight: 700; color: #8b6634; margin-bottom: 8px; }}
-.quelina-divider {{ width: 80px; height: 2px; margin: 0 auto; background: rgba(165,127,67,.5); }}
-.quelina-body {{ display: grid; grid-template-columns: 2.8in 1fr; gap: 0.4in; align-items: center; }}
-.quelina-portrait {{ width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
-.quelina-copy {{ font-size: 14pt; line-height: 1.75; color: #34291f; }}
-.quelina-copy p {{ margin: 0 0 12pt; }}
-.quelina-moraleja {{ text-align: center; font-size: 17pt; font-weight: 700; color: #8b6634; line-height: 1.4; }}
-
-/* COVER */
-.cover-overlay {{ position: absolute; inset: auto 0 0 0; height: 54%;
-  background: linear-gradient(to top, rgba(12,10,8,0.92) 0%, rgba(12,10,8,0.76) 20%, rgba(12,10,8,0.40) 48%, transparent 100%); }}
-.cover-copy {{ position: absolute; left: 7%; right: 7%; bottom: 9%; color: #fff7e6; }}
-.cover-title {{ font-size: 30pt; font-weight: 700; line-height: 1.08; margin: 0 0 10px; }}
-.cover-sub {{ font-size: 15pt; color: #f1e3ba; }}
-
-.page-no {{ position: absolute; bottom: 0.3in; left: 50%; transform: translateX(-50%); font-size: 9pt; color: rgba(120,93,58,.5); }}
-"""
-
-
-# ============================================================
-# TEMPLATES
-# ============================================================
-def _pnum(n: int) -> str:
-    return f'<div class="page-no">{n}</div>'
-
-def _paras(text: str) -> str:
-    return "".join(f"<p>{esc(p)}</p>" for p in paragraphs(text))
-
-def tmpl_cover(img: Path, title: str, sub: str, pn: int) -> str:
-    return f"""<section class="page">
-  <img class="full-bleed" src="{img.resolve().as_uri()}" alt="">
-  <div class="cover-overlay"></div>
-  <div class="cover-copy">
-    <h1 class="cover-title">{esc(title)}</h1>
-    <div class="cover-sub">{esc(sub)}</div>
-  </div>{_pnum(pn)}
-</section>"""
-
-def tmpl_hero(s: Story, pn: int) -> str:
-    return f"""<section class="page">
-  <img class="full-bleed" src="{s.assets.hero.resolve().as_uri()}" alt="">
-  <div class="hero-overlay"></div>
-  <div class="hero-text">
-    <div class="hero-number">{s.numero}</div>
-    <div class="hero-rule"></div>
-    <h2 class="hero-title">{esc(s.titulo)}</h2>
-    <div class="hero-subtitle">{esc(s.personaje)}</div>
-  </div>{_pnum(pn)}
-</section>"""
-
-def tmpl_narrative(s: Story, chunk: str, pn: int) -> str:
-    return f"""<section class="page panel">
-  <div class="kicker">Cuento {s.numero:02d}</div>
-  <div class="narrative">{_paras(chunk)}</div>
-  {_pnum(pn)}
-</section>"""
-
-def tmpl_image_led(s: Story, chunk: str, img: Path, pn: int) -> str:
-    return f"""<section class="page panel">
-  <div class="img-led-grid">
-    <div><img class="img-led-art" src="{img.resolve().as_uri()}" alt=""></div>
-    <div class="img-led-text">{_paras(chunk)}</div>
-  </div>{_pnum(pn)}
-</section>"""
-
-def tmpl_resolution(s: Story, chunk: str, pn: int) -> str:
-    return f"""<section class="page panel">
-  <div class="reso-stack">
-    <img class="reso-art" src="{s.assets.resolution.resolve().as_uri()}" alt="">
-    <div class="reso-text">{_paras(chunk)}</div>
-  </div>{_pnum(pn)}
-</section>"""
-
-def tmpl_quelina(s: Story, pn: int) -> str:
-    qt = clean_text(s.quelina_text)
-    if len(qt) > 200:
-        cut = qt[:200].rfind('.')
-        if cut > 50: qt = qt[:cut+1]
-    return f"""<section class="page quelina-bg">
-  <div class="quelina-shell">
-    <div class="quelina-head">
-      <div class="quelina-head-title">El Momento de Quelina</div>
-      <div class="quelina-divider"></div>
-    </div>
-    <div class="quelina-body">
-      <div><img class="quelina-portrait" src="{s.assets.quelina.resolve().as_uri()}" alt=""></div>
-      <div class="quelina-copy"><p>{esc(qt)}</p></div>
-    </div>
-    <div class="quelina-moraleja">"{esc(s.moraleja)}"</div>
-  </div>{_pnum(pn)}
-</section>"""
-
-
-# ============================================================
-# STORY FLOW
-# ============================================================
-def build_story_pages(s: Story, pn: int) -> Tuple[List[str], int]:
-    pages = []
-    chunks = chunk_text(s.body, MAX_WORDS_IDEAL)
-    if not chunks: chunks = [""]
-
-    # HERO
-    pages.append(tmpl_hero(s, pn)); pn += 1
-
-    # LEAD narrative
-    if chunks:
-        pages.append(tmpl_narrative(s, chunks[0], pn)); pn += 1
-
-    # IMAGE-LED at conflict point
-    if len(chunks) > 1 and s.assets.conflict and s.assets.conflict.exists():
-        pages.append(tmpl_image_led(s, chunks[1], s.assets.conflict, pn)); pn += 1
-
-    # MID narratives
-    for chunk in chunks[2:-1] if len(chunks) > 3 else []:
-        pages.append(tmpl_narrative(s, chunk, pn)); pn += 1
-
-    # RESOLUTION with closing text
-    tail = chunks[-1] if len(chunks) > 2 else (chunks[-1] if len(chunks) > 1 else s.moraleja)
-    if s.assets.resolution and s.assets.resolution.exists():
-        pages.append(tmpl_resolution(s, tail, pn)); pn += 1
-    else:
-        pages.append(tmpl_narrative(s, tail, pn)); pn += 1
-
-    # QUELINA
-    pages.append(tmpl_quelina(s, pn)); pn += 1
-
-    return pages, pn
-
-
-# ============================================================
-# QA
-# ============================================================
-def qa_all(stories: List[Story]) -> List[QAIssue]:
-    issues = []
-    for s in stories:
-        issues.extend(validate_story(s))
-        for field_name in ["body", "quelina_text", "moraleja"]:
-            val = getattr(s, field_name, "")
-            if any(c in val for c in ["￾", "\ufffe", "\ufffd"]):
-                issues.append(QAIssue("blocker", f"story {s.numero}", f"corrupt char in {field_name}"))
+def validate_story_text(story: Story) -> List[QAIssue]:
+    issues: List[QAIssue] = []
+    if not story.body.strip():
+        issues.append(QAIssue("blocker", f"story {story.numero}", "empty story body"))
+    for bad in BAD_VISIBLE_CORRUPT:
+        if bad in story.body or bad in story.quelina_text or bad in story.moraleja:
+            issues.append(QAIssue("blocker", f"story {story.numero}", f"corrupt character detected"))
+    if word_count(story.quelina_text) > 75:
+        issues.append(QAIssue("warning", f"story {story.numero}", "Quelina text may be too long"))
     return issues
+
+
+def qa_all(stories: List[Story], cover_image: Optional[Path] = None) -> List[QAIssue]:
+    issues: List[QAIssue] = []
+    if cover_image:
+        err = validate_asset(cover_image)
+        if err:
+            issues.append(QAIssue("blocker", "cover", f"cover asset error: {err}"))
+    for story in stories:
+        issues.extend(validate_story_assets(story))
+        issues.extend(validate_story_text(story))
+    return issues
+
 
 def has_blockers(issues: List[QAIssue]) -> bool:
     return any(i.severity == "blocker" for i in issues)
 
 
 # ============================================================
-# BUILD
+# CSS EDITORIAL
 # ============================================================
-def build_proof(cover_img: Path, title: str, sub: str, stories: List[Story], out_name: str = "proof.pdf") -> BuildResult:
-    issues = qa_all(stories)
-    pdf_path = OUT_DIR / out_name
+
+CSS_EDITORIAL = f"""
+@page {{ size: {PAGE_W} {PAGE_H}; margin: 0; }}
+html, body {{ margin: 0; padding: 0; background: #f8f4eb; color: #2e241c; font-family: {FONT_STACK_SERIF}; }}
+* {{ box-sizing: border-box; }}
+body {{ -weasy-hyphens: none; }}
+
+.page {{ width: {PAGE_W}; height: {PAGE_H}; position: relative; overflow: hidden; background: #fbf8f1; page-break-after: always; }}
+.full-bleed {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
+.page-no {{ position: absolute; bottom: 0.28in; left: 50%; transform: translateX(-50%); font-size: 9pt; color: rgba(120,93,58,.55); }}
+
+.cover-page {{ background: #12100f; }}
+.cover-overlay {{ position: absolute; inset: auto 0 0 0; height: 54%;
+  background: linear-gradient(to top, rgba(12,10,8,0.92) 0%, rgba(12,10,8,0.76) 20%, rgba(12,10,8,0.40) 48%, rgba(12,10,8,0.12) 75%, transparent 100%); }}
+.cover-copy {{ position: absolute; left: 7%; right: 7%; bottom: 9%; color: #fff7e6; }}
+.cover-title {{ font-family: {FONT_STACK_DISPLAY}; font-size: 31pt; line-height: 1.08; font-weight: 700; margin: 0 0 10px; color: #fff9ea; text-shadow: 0 2px 12px rgba(0,0,0,.55); }}
+.cover-subtitle {{ font-size: 16pt; line-height: 1.25; color: #f1e3ba; text-shadow: 0 1px 8px rgba(0,0,0,.48); }}
+
+.hero-page {{ background: #0f0d0b; }}
+.hero-overlay {{ position: absolute; inset: auto 0 0 0; height: 48%;
+  background: linear-gradient(to top, rgba(14,10,8,0.94) 0%, rgba(14,10,8,0.78) 18%, rgba(14,10,8,0.42) 42%, rgba(14,10,8,0.14) 70%, transparent 100%); }}
+.hero-text {{ position: absolute; left: 7%; right: 7%; bottom: 9%; color: #fefae0; }}
+.hero-number {{ font-size: 42pt; font-weight: 700; line-height: 1; color: #c99734; text-shadow: 0 2px 8px rgba(0,0,0,.55); margin-bottom: 10px; }}
+.hero-rule {{ width: 28%; height: 2px; background: rgba(201,151,52,.9); margin: 0 0 18px; }}
+.hero-title {{ font-family: {FONT_STACK_DISPLAY}; font-size: 28pt; font-weight: 700; line-height: 1.12; margin: 0 0 8px; color: #fff9ea; text-shadow: 0 2px 12px rgba(0,0,0,.55); }}
+.hero-subtitle {{ font-size: 16pt; line-height: 1.2; color: #efe5c9; text-shadow: 0 1px 8px rgba(0,0,0,.48); }}
+
+.panel-page {{ padding: 0.85in 0.9in 0.95in; background: #fbf8f1; }}
+.kicker {{ font-size: 11pt; letter-spacing: .08em; text-transform: uppercase; color: #9a7c52; margin-bottom: 16px; }}
+.narrative-text {{ font-size: 14pt; line-height: 2.02; color: #2f261f; hyphens: none; text-align: left; }}
+.narrative-text p {{ margin: 0 0 16pt; }}
+
+.image-led-grid {{ display: grid; grid-template-columns: 1.1fr .9fr; gap: 0.45in; align-items: center; height: 100%; }}
+.image-led-art {{ width: 100%; max-height: 8.2in; object-fit: cover; border-radius: 18px; }}
+.image-led-copy {{ font-size: 14pt; line-height: 1.95; color: #2f261f; hyphens: none; }}
+.image-led-copy p {{ margin: 0 0 16pt; }}
+
+.resolution-stack {{ display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; gap: 22px; padding: 0.7in 0.8in; }}
+.resolution-art {{ width: 63%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
+.resolution-text {{ width: 80%; text-align: center; font-size: 15pt; line-height: 1.8; color: #2f261f; }}
+
+.quelina-page {{ padding: 0.85in; background: linear-gradient(180deg, #f7f1e4, #fbf8f1); }}
+.quelina-shell {{ height: 100%; border: 1.5px solid rgba(165,127,67,.30); border-radius: 22px; padding: 0.55in; background: rgba(255,255,255,.60); display: grid; grid-template-rows: auto 1fr auto; gap: 18px; }}
+.quelina-head {{ text-align: center; }}
+.quelina-title {{ font-size: 21pt; font-weight: 700; color: #8b6634; margin-bottom: 10px; }}
+.quelina-divider {{ width: 90px; height: 2px; margin: 0 auto; background: rgba(165,127,67,.55); }}
+.quelina-body {{ display: grid; grid-template-columns: 2.9in 1fr; gap: 0.45in; align-items: center; }}
+.quelina-portrait {{ width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
+.quelina-copy {{ font-size: 14.5pt; line-height: 1.75; color: #34291f; }}
+.quelina-copy p {{ margin: 0 0 14pt; }}
+.quelina-moraleja {{ text-align: center; font-size: 18pt; line-height: 1.4; font-weight: 700; color: #8b6634; }}
+
+.final-page {{ background: #f8f4eb; display: flex; align-items: center; justify-content: center; padding: 1.2in; text-align: center; }}
+.final-shell {{ max-width: 6.4in; }}
+.final-title {{ font-size: 28pt; line-height: 1.1; color: #8b6634; margin: 0 0 18px; font-weight: 700; }}
+.final-copy {{ font-size: 16pt; line-height: 1.8; color: #3a2d23; }}
+.final-copy p {{ margin: 0 0 12pt; }}
+"""
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def img_src(path: Path) -> str:
+    return path.resolve().as_uri()
+
+
+def page_number(n: int) -> str:
+    return f'<div class="page-no">{n}</div>'
+
+
+def render_paragraphs_html(text: str) -> str:
+    return "".join(f"<p>{escape(p)}</p>" for p in paragraphs(text))
+
+
+# ============================================================
+# TEMPLATES
+# ============================================================
+
+def tmpl_cover(cover_image: Path, title: str, subtitle: str, pn: int) -> str:
+    return f'<section class="page cover-page"><img class="full-bleed" src="{img_src(cover_image)}" alt=""><div class="cover-overlay"></div><div class="cover-copy"><h1 class="cover-title">{escape(title)}</h1><div class="cover-subtitle">{escape(subtitle)}</div></div>{page_number(pn)}</section>'
+
+
+def tmpl_hero_opening(story: Story, pn: int) -> str:
+    return f'<section class="page hero-page"><img class="full-bleed" src="{img_src(story.assets.hero)}" alt=""><div class="hero-overlay"></div><div class="hero-text"><div class="hero-number">{story.numero}</div><div class="hero-rule"></div><h2 class="hero-title">{escape(story.titulo)}</h2><div class="hero-subtitle">{escape(story.personaje)}</div></div>{page_number(pn)}</section>'
+
+
+def tmpl_narrative(story: Story, chunk: str, pn: int) -> str:
+    return f'<section class="page panel-page"><div class="kicker">Cuento {story.numero:02d}</div><div class="narrative-text">{render_paragraphs_html(chunk)}</div>{page_number(pn)}</section>'
+
+
+def tmpl_image_led(story: Story, chunk: str, img_path: Path, pn: int) -> str:
+    return f'<section class="page panel-page"><div class="image-led-grid"><div><img class="image-led-art" src="{img_src(img_path)}" alt=""></div><div class="image-led-copy">{render_paragraphs_html(chunk)}</div></div>{page_number(pn)}</section>'
+
+
+def tmpl_resolution_page(story: Story, chunk: str, pn: int) -> str:
+    return f'<section class="page panel-page"><div class="resolution-stack"><img class="resolution-art" src="{img_src(story.assets.resolution)}" alt=""><div class="resolution-text">{render_paragraphs_html(chunk)}</div></div>{page_number(pn)}</section>'
+
+
+def tmpl_quelina(story: Story, pn: int) -> str:
+    return f'<section class="page quelina-page"><div class="quelina-shell"><div class="quelina-head"><div class="quelina-title">El Momento de Quelina</div><div class="quelina-divider"></div></div><div class="quelina-body"><div><img class="quelina-portrait" src="{img_src(story.assets.quelina)}" alt=""></div><div class="quelina-copy">{render_paragraphs_html(story.quelina_text)}</div></div><div class="quelina-moraleja">"{escape(story.moraleja)}"</div></div>{page_number(pn)}</section>'
+
+
+def tmpl_final_closing(title: str, copy: str, pn: int) -> str:
+    return f'<section class="page final-page"><div class="final-shell"><h2 class="final-title">{escape(title)}</h2><div class="final-copy">{render_paragraphs_html(copy)}</div></div>{page_number(pn)}</section>'
+
+
+# ============================================================
+# STORY FLOW
+# ============================================================
+
+def split_story_for_templates(story: Story) -> Dict[str, List[str]]:
+    chunks = chunk_paragraphs_for_narrative(story.body, MAX_WORDS_NARRATIVE_IDEAL)
+    result = {"lead": [], "mid": [], "tail": []}
+    if len(chunks) == 1:
+        result["lead"] = [chunks[0]]
+    elif len(chunks) == 2:
+        result["lead"] = [chunks[0]]
+        result["tail"] = [chunks[1]]
+    else:
+        result["lead"] = [chunks[0]]
+        result["mid"] = chunks[1:-1]
+        result["tail"] = [chunks[-1]]
+    return result
+
+
+def build_story_pages(story: Story, pn: int) -> Tuple[List[str], int]:
+    pages = []
+    split = split_story_for_templates(story)
+
+    pages.append(tmpl_hero_opening(story, pn)); pn += 1
+
+    for chunk in split["lead"]:
+        pages.append(tmpl_narrative(story, chunk, pn)); pn += 1
+
+    if story.assets.conflict and split["mid"]:
+        pages.append(tmpl_image_led(story, split["mid"][0], story.assets.conflict, pn)); pn += 1
+        for chunk in split["mid"][1:]:
+            pages.append(tmpl_narrative(story, chunk, pn)); pn += 1
+    else:
+        for chunk in split["mid"]:
+            pages.append(tmpl_narrative(story, chunk, pn)); pn += 1
+
+    tail_text = "\n\n".join(split["tail"]) if split["tail"] else story.moraleja
+    if story.assets.resolution:
+        pages.append(tmpl_resolution_page(story, tail_text, pn)); pn += 1
+    else:
+        pages.append(tmpl_narrative(story, tail_text, pn)); pn += 1
+
+    pages.append(tmpl_quelina(story, pn)); pn += 1
+    return pages, pn
+
+
+# ============================================================
+# DOCUMENT BUILD
+# ============================================================
+
+def wrap_document(pages: List[str]) -> str:
+    return f"<!doctype html><html lang='es'><head><meta charset='utf-8'><style>{CSS_EDITORIAL}</style></head><body>{''.join(pages)}</body></html>"
+
+
+def build_proof(
+    cover_image: Path,
+    cover_title: str,
+    cover_subtitle: str,
+    stories: List[Story],
+    output_name: str = "proof_5_stories.pdf",
+    include_final_closing: bool = False,
+    final_title: str = "Hasta aqui por hoy",
+    final_copy: str = "Cada cuento deja una luz pequena. Y esa luz sigue creciendo en el corazon.",
+) -> BuildResult:
+    issues = qa_all(stories, cover_image=cover_image)
+    pdf_path = OUTPUT_DIR / output_name
 
     if has_blockers(issues):
         return BuildResult(pdf_path=pdf_path, qa_issues=issues)
 
-    # Optimize images
-    prepare_assets(stories)
-
     pages = []
     pn = 1
-    pages.append(tmpl_cover(cover_img, title, sub, pn)); pn += 1
+    pages.append(tmpl_cover(cover_image, cover_title, cover_subtitle, pn)); pn += 1
 
-    for s in stories:
-        sp, pn = build_story_pages(s, pn)
+    for story in stories:
+        sp, pn = build_story_pages(story, pn)
         pages.extend(sp)
 
-    html_doc = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body>
-{"".join(pages)}
-</body></html>"""
+    if include_final_closing:
+        pages.append(tmpl_final_closing(final_title, final_copy, pn)); pn += 1
 
-    doc = HTML(string=html_doc, base_url=str(BASE_DIR)).render(stylesheets=[CSS(string=CSS_EDITORIAL)])
-    doc.write_pdf(str(pdf_path))
+    html_doc = wrap_document(pages)
+    HTML(string=html_doc, base_url=str(PROJECT_ROOT)).write_pdf(str(pdf_path), stylesheets=[CSS(string=CSS_EDITORIAL)])
 
-    return BuildResult(pdf_path=pdf_path, page_count=len(doc.pages), qa_issues=issues)
-
-
-# ============================================================
-# LOAD STORIES FROM JSON
-# ============================================================
-def load_stories(json_path: Path) -> List[Story]:
-    data = json.loads(json_path.read_text(encoding="utf-8"))
-    stories = []
-    for d in data:
-        assets = StoryAssets(
-            hero=BASE_DIR / d["assets"]["hero"] if d["assets"].get("hero") else None,
-            conflict=BASE_DIR / d["assets"]["conflict"] if d["assets"].get("conflict") else None,
-            resolution=BASE_DIR / d["assets"]["resolution"] if d["assets"].get("resolution") else None,
-            quelina=BASE_DIR / d["assets"]["quelina"] if d["assets"].get("quelina") else None,
-        )
-        stories.append(Story(
-            numero=d["numero"], titulo=d["titulo"], personaje=d["personaje"],
-            body=d["body"], moraleja=d["moraleja"], quelina_text=d["quelina_text"],
-            assets=assets,
-        ))
-    return stories
+    return BuildResult(pdf_path=pdf_path, qa_issues=issues, total_pages_estimate=pn - 1)
