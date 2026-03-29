@@ -265,10 +265,10 @@ body {{ -weasy-hyphens: none; }}
 .hero-title {{ font-family: {FONT_STACK_DISPLAY}; font-size: 28pt; font-weight: 700; line-height: 1.12; margin: 0 0 8px; color: #fff9ea; text-shadow: 0 2px 12px rgba(0,0,0,.55); }}
 .hero-subtitle {{ font-size: 16pt; line-height: 1.2; color: #efe5c9; text-shadow: 0 1px 8px rgba(0,0,0,.48); }}
 
-.panel-page {{ padding: 0.9in 0.95in 0.85in; background: #fbf8f1; }}
-.kicker {{ font-size: 10pt; letter-spacing: .1em; text-transform: uppercase; color: #a08a62; margin-bottom: 20px; }}
-.narrative-text {{ font-size: 14.5pt; line-height: 2.1; color: #2f261f; hyphens: none; text-align: left; }}
-.narrative-text p {{ margin: 0 0 18pt; }}
+.panel-page {{ padding: 0.95in 1in 0.85in; background: #fbf8f1; }}
+.kicker {{ font-size: 9pt; letter-spacing: .12em; text-transform: uppercase; color: #bfaa88; margin-bottom: 24px; }}
+.narrative-text {{ font-size: 15pt; line-height: 2.15; color: #2f261f; hyphens: none; text-align: left; }}
+.narrative-text p {{ margin: 0 0 22pt; }}
 
 .image-led-grid {{ display: grid; grid-template-columns: 1.1fr .9fr; gap: 0.45in; align-items: center; height: 100%; }}
 .image-led-art {{ width: 100%; max-height: 8.2in; object-fit: cover; border-radius: 18px; }}
@@ -279,16 +279,16 @@ body {{ -weasy-hyphens: none; }}
 .resolution-art {{ width: 63%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; }}
 .resolution-text {{ width: 80%; text-align: center; font-size: 15pt; line-height: 1.8; color: #2f261f; }}
 
-.quelina-page {{ padding: 0.75in 0.85in; background: linear-gradient(180deg, #f5efe0, #faf7f0); }}
-.quelina-shell {{ height: 100%; border: 2px solid rgba(139,102,52,.35); border-radius: 24px; padding: 0.5in 0.55in; background: linear-gradient(135deg, rgba(255,252,240,.75), rgba(255,255,255,.55)); display: grid; grid-template-rows: auto 1fr auto; gap: 22px; box-shadow: 0 4px 24px rgba(139,102,52,.08); }}
-.quelina-head {{ text-align: center; }}
-.quelina-title {{ font-size: 24pt; font-weight: 700; color: #7a5828; margin-bottom: 12px; letter-spacing: 0.02em; }}
-.quelina-divider {{ width: 100px; height: 2px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(139,102,52,.6), transparent); }}
-.quelina-body {{ display: grid; grid-template-columns: 3in 1fr; gap: 0.45in; align-items: center; }}
-.quelina-portrait {{ width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; box-shadow: 0 0 20px rgba(139,102,52,.12); }}
-.quelina-copy {{ font-size: 15pt; line-height: 1.8; color: #34291f; font-style: italic; }}
-.quelina-copy p {{ margin: 0 0 14pt; }}
-.quelina-moraleja {{ text-align: center; font-size: 20pt; line-height: 1.4; font-weight: 700; color: #7a5828; padding-top: 8px; border-top: 1.5px solid rgba(139,102,52,.25); }}
+.quelina-page {{ padding: 0.65in 0.8in 0.7in; background: linear-gradient(180deg, #f3ecdb, #f9f6ee); }}
+.quelina-shell {{ height: 100%; border: 2.5px solid rgba(122,88,40,.4); border-radius: 28px; padding: 0.45in 0.5in; background: linear-gradient(145deg, rgba(255,252,238,.8), rgba(255,255,252,.6)); display: grid; grid-template-rows: auto 1fr auto; gap: 18px; box-shadow: 0 6px 32px rgba(122,88,40,.1), inset 0 1px 0 rgba(255,255,255,.5); }}
+.quelina-head {{ text-align: center; padding-top: 8px; }}
+.quelina-title {{ font-size: 26pt; font-weight: 700; color: #6b4c1e; margin-bottom: 14px; letter-spacing: 0.03em; }}
+.quelina-divider {{ width: 120px; height: 2.5px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(122,88,40,.65), transparent); }}
+.quelina-body {{ display: grid; grid-template-columns: 3.2in 1fr; gap: 0.5in; align-items: center; }}
+.quelina-portrait {{ width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 999px; box-shadow: 0 0 28px rgba(122,88,40,.15), 0 0 0 3px rgba(122,88,40,.08); }}
+.quelina-copy {{ font-size: 16pt; line-height: 1.85; color: #2e2318; font-style: italic; }}
+.quelina-copy p {{ margin: 0 0 16pt; }}
+.quelina-moraleja {{ text-align: center; font-size: 22pt; line-height: 1.35; font-weight: 700; color: #6b4c1e; padding-top: 14px; border-top: 2px solid rgba(122,88,40,.3); letter-spacing: 0.01em; }}
 
 .final-page {{ background: #f8f4eb; display: flex; align-items: center; justify-content: center; padding: 1.2in; text-align: center; }}
 .final-shell {{ max-width: 6.4in; }}
