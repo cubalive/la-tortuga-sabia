@@ -106,7 +106,7 @@ async function callClaude(systemPrompt: string, userPrompt: string, retries = 2)
         "x-api-key": ANTHROPIC_KEY,
         "anthropic-version": "2023-06-01",
       }, {
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 4000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],

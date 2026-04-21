@@ -113,7 +113,7 @@ Sigue la ESTRUCTURA OBLIGATORIA.
 ${SPECIAL}
 Responde en JSON (sin markdown):
 {{"numero":$NUM,"titulo":"","personaje":"","situacion":"","historia":"cuento COMPLETO","quelina_momento":"","moraleja":"1 frase","il_portada":"DALL-E prompt English Ghibli watercolor golden autumn NO white background","suno_prompt":"music prompt","suno_lyrics":"letra español"}}"""
-print(json.dumps({"model":"claude-sonnet-4-20250514","max_tokens":5000,"system":system,"messages":[{"role":"user","content":prompt}]}))
+print(json.dumps({"model":"claude-sonnet-4-6","max_tokens":5000,"system":system,"messages":[{"role":"user","content":prompt}]}))
 PYEOF
   )
 

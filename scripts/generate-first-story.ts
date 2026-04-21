@@ -14,7 +14,7 @@ async function generateFirstStory() {
   console.log("Generando cuento con Claude...");
 
   const story = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 2000,
     system: `Eres el autor de La Tortuga Sabia.
     Quelina es una tortuga anciana y sabia con constelaciones en el caparazón.
