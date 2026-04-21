@@ -3,10 +3,10 @@ import { NextRequest } from "next/server";
 const R2_PUBLIC = "https://pub-f853fa89d0774696ba2924b6df56123b.r2.dev";
 
 const BOOK_FILES: Record<string, string> = {
-  "tomo-1": "la-tortuga-sabia-tomo-1-v9.pdf",
-  "tomo-2": "la-tortuga-sabia-tomo-2-v9.pdf",
-  "tomo-3": "la-tortuga-sabia-tomo-3-v9.pdf",
-  "tomo-4": "la-tortuga-sabia-tomo-4-v9.pdf",
+  "tomo-1": "la-tortuga-sabia-tomo-1-v11.pdf",
+  "tomo-2": "la-tortuga-sabia-tomo-2-v11.pdf",
+  "tomo-3": "la-tortuga-sabia-tomo-3-v11.pdf",
+  "tomo-4": "la-tortuga-sabia-tomo-4-v11.pdf",
 };
 
 export async function POST(request: NextRequest) {
