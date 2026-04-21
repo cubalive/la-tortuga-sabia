@@ -53,7 +53,7 @@ Responde SOLO un array JSON válido. Sin markdown, sin code fences, solo el JSON
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const msg = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 16000,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: prompt }],

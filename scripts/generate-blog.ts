@@ -23,7 +23,7 @@ const TOPICS = [
 async function generateArticle(topic: typeof TOPICS[0]) {
   console.log(`Generando: ${topic.title}`);
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 2500,
     system: `Eres experto en SEO y crianza infantil. Escribes en español neutro para padres latinos en USA. Artículos útiles, empáticos y optimizados para Google. Menciona La Tortuga Sabia naturalmente cuando aplique. Responde SOLO en JSON válido sin markdown ni code fences.`,
     messages: [{

@@ -92,7 +92,7 @@ for NUM in $(seq 1 50); do
 import json
 system = open('/dev/stdin').read()
 prompt = 'Genera el cuento #$NUM del Tomo 1 \"El Bosque Encantado\" para niños de 0-2 años.\n\nTítulo: ${TITLES[$NUM]}\nPersonaje: ${CHARS[$NUM]}\nSituación: ${SITUS[$NUM]}\n\nEl cuento debe tener 400-500 palabras.\nSigue la ESTRUCTURA OBLIGATORIA.\n\nResponde en JSON (sin markdown):\n{\"numero\":$NUM,\"titulo\":\"\",\"personaje\":\"\",\"situacion\":\"\",\"historia\":\"cuento COMPLETO\",\"quelina_momento\":\"\",\"moraleja\":\"1 frase\",\"il_portada\":\"DALL-E prompt English Ghibli watercolor\",\"il_problema\":\"DALL-E prompt\",\"il_quelina\":\"DALL-E prompt\",\"il_resolucion\":\"DALL-E prompt\",\"il_vineta\":\"DALL-E prompt\",\"suno_prompt\":\"music prompt English\",\"suno_lyrics\":\"letra español\"}'
-print(json.dumps({'model':'claude-sonnet-4-20250514','max_tokens':4000,'system':system,'messages':[{'role':'user','content':prompt}]}))
+print(json.dumps({'model':'claude-sonnet-4-6','max_tokens':4000,'system':system,'messages':[{'role':'user','content':prompt}]}))
 " <<< "$SYSPROMPT")
 
   RESP=$(curl -s --max-time 180 https://api.anthropic.com/v1/messages \
