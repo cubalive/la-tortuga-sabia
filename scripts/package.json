@@ -1,0 +1,25 @@
+{
+  "name": "la-tortuga-sabia-scripts",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Scripts de generación y gestión de La Tortuga Sabia",
+  "scripts": {
+    "step1:migrate":    "echo 'Ejecuta scripts/migrations/001_restructure_series.sql en Supabase Dashboard → SQL Editor'",
+    "step2:select-tomo1": "node scripts/select_best_tomo1.js",
+    "gen:tomo1":  "node scripts/generate_stories.js --tomo=1",
+    "gen:tomo2":  "node scripts/generate_stories.js --tomo=2",
+    "gen:tomo3":  "node scripts/generate_stories.js --tomo=3",
+    "gen:tomo4":  "node scripts/generate_stories.js --tomo=4",
+    "gen:tomo5":  "node scripts/generate_stories.js --tomo=5",
+    "gen:tomo6":  "node scripts/generate_stories.js --tomo=6",
+    "gen:tomo7":  "node scripts/generate_stories.js --tomo=7",
+    "gen:all":    "node scripts/generate_stories.js --tomo=all",
+    "dry-run":    "node scripts/generate_stories.js --tomo=all --dry-run",
+    "grammar":    "node scripts/grammar_check.js",
+    "export:pdf": "node scripts/export_pdf.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@supabase/supabase-js": "^2.100.0"
+  }
+}
