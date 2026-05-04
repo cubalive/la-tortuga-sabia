@@ -50,6 +50,25 @@ CREATE TABLE IF NOT EXISTS tomos (
   actualizado_en TIMESTAMPTZ DEFAULT now()
 );
 
+-- Añadir columnas que pueden faltar si la tabla ya existía
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS subtitulo TEXT;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS descripcion TEXT;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS tematica_principal VARCHAR(200);
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS grupo_edad VARCHAR(20);
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS edad_min INTEGER;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS edad_max INTEGER;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS total_cuentos INTEGER;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS cuentos_generados INTEGER DEFAULT 0;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS pdf_url TEXT;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS pdf_sin_imagenes_url TEXT;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS precio_pdf DECIMAL(10,2) DEFAULT 9.99;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS precio_pdf_audio DECIMAL(10,2) DEFAULT 19.99;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS precio_fisico DECIMAL(10,2) DEFAULT 24.99;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS portada_url TEXT;
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS estado VARCHAR(20) DEFAULT 'en_progreso';
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS creado_en TIMESTAMPTZ DEFAULT now();
+ALTER TABLE tomos ADD COLUMN IF NOT EXISTS actualizado_en TIMESTAMPTZ DEFAULT now();
+
 INSERT INTO tomos (id, titulo, subtitulo, tematica_principal, grupo_edad, edad_min, edad_max, total_cuentos, precio_pdf, precio_pdf_audio, precio_fisico)
 VALUES
   (1,'El Despertar de Quelina','Cuentos de autoconocimiento y primeras emociones','Autoconocimiento, emociones básicas, curiosidad','primario',4,8,33,9.99,19.99,24.99),
