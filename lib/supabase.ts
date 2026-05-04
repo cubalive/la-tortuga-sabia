@@ -21,10 +21,11 @@ export const supabase = new Proxy({} as SupabaseClient, {
 // Server-side client with service key for admin operations
 export function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_KEY;
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY;
   if (!url || !serviceKey) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_KEY"
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
     );
   }
   return createClient(url, serviceKey);
