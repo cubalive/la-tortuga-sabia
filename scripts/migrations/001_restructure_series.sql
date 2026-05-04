@@ -153,12 +153,19 @@ CREATE TRIGGER stories_count_trigger
   FOR EACH ROW EXECUTE FUNCTION update_tomo_cuento_count();
 
 CREATE OR REPLACE VIEW v_progreso_tomos AS
-SELECT t.id, t.titulo, t.grupo_edad, t.edad_min, t.edad_max, t.total_cuentos,
-  t.cuentos_generados,
-  ROUND((t.cuentos_generados::DECIMAL / t.total_cuentos * 100), 1) AS porcentaje_completado,
-  COUNT(s.id) FILTER (WHERE s.revisado_gramaticalmente = true) AS cuentos_revisados,
-  t.estado
-FROM tomos t LEFT JOIN stories s ON s.tomo = t.id
-GROUP BY t.id, t.titulo, t.grupo_edad, t.edad_min, t.edad_max,
-         t.total_cuentos, t.cuentos_generados, t.estado
-ORDER BY t.id;
+SELECT
+  tomos.id,
+  tomos.titulo,
+  tomos.grupo_edad,
+  tomos.edad_min,
+  tomos.edad_max,
+  tomos.total_cuentos,
+  tomos.cuentos_generados,
+  ROUND((tomos.cuentos_generados::DECIMAL / tomos.total_cuentos * 100), 1) AS porcentaje_completado,
+  COUNT(stories.id) FILTER (WHERE stories.revisado_gramaticalmente = true) AS cuentos_revisados,
+  tomos.estado
+FROM tomos
+LEFT JOIN stories ON stories.tomo = tomos.id
+GROUP BY tomos.id, tomos.titulo, tomos.grupo_edad, tomos.edad_min, tomos.edad_max,
+         tomos.total_cuentos, tomos.cuentos_generados, tomos.estado
+ORDER BY tomos.id;
